@@ -16,11 +16,125 @@ import numpy as np
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import math
 import folium
 from streamlit_folium import st_folium
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
+from gap_score import compute_resource_index, compute_gap_score
+
+# ── NYC Community Resource Data (NYC Open Data + MOIA) ───────────────────────
+NYC_RESOURCES = {
+    "🍎 Food Pantry": [
+        {"name": "Holy Apostles Soup Kitchen",      "address": "275 9th Ave, Manhattan",          "lat": 40.7488, "lon": -74.0013},
+        {"name": "West Side Campaign Against Hunger","address": "263 W 86th St, Manhattan",         "lat": 40.7882, "lon": -73.9764},
+        {"name": "BronxWorks Food Pantry",           "address": "60 E Tremont Ave, Bronx",          "lat": 40.8467, "lon": -73.8946},
+        {"name": "Bronx Community Food Bank",        "address": "384 E 149th St, Bronx",            "lat": 40.8160, "lon": -73.9180},
+        {"name": "Brooklyn Community Food Pantry",   "address": "285 Schermerhorn St, Brooklyn",    "lat": 40.6892, "lon": -73.9874},
+        {"name": "St. John's Bread and Life",        "address": "795 Lexington Ave, Brooklyn",      "lat": 40.6783, "lon": -73.9400},
+        {"name": "Queens Community House",           "address": "108-25 62nd Dr, Queens",           "lat": 40.7229, "lon": -73.8456},
+        {"name": "Catholic Charities SI",            "address": "1011 First St, Staten Island",     "lat": 40.6315, "lon": -74.0738},
+    ],
+    "🏛️ SNAP / Benefits": [
+        {"name": "HRA Waverly Center",  "address": "12 W 14th St, Manhattan",         "lat": 40.7374, "lon": -73.9974},
+        {"name": "HRA East End Center", "address": "345 E 102nd St, Manhattan",        "lat": 40.7899, "lon": -73.9461},
+        {"name": "HRA Melrose Center",  "address": "260 E 161st St, Bronx",            "lat": 40.8243, "lon": -73.9226},
+        {"name": "HRA Fulton Center",   "address": "114 Willoughby St, Brooklyn",      "lat": 40.6927, "lon": -73.9845},
+        {"name": "HRA Jamaica Center",  "address": "165-08 88th Ave, Queens",          "lat": 40.7067, "lon": -73.7894},
+        {"name": "HRA Richmond Center", "address": "95 Central Ave, Staten Island",    "lat": 40.6368, "lon": -74.0862},
+    ],
+    "🏠 Housing Help": [
+        {"name": "Manhattan Housing Court",     "address": "111 Centre St, Manhattan",        "lat": 40.7147, "lon": -74.0022},
+        {"name": "Bronx Housing Court",         "address": "1118 Grand Concourse, Bronx",     "lat": 40.8451, "lon": -73.9265},
+        {"name": "Brooklyn Housing Court",      "address": "141 Livingston St, Brooklyn",     "lat": 40.6904, "lon": -73.9902},
+        {"name": "Queens Housing Court",        "address": "89-17 Sutphin Blvd, Queens",      "lat": 40.7010, "lon": -73.8082},
+        {"name": "Staten Island Housing Court", "address": "927 Castleton Ave, SI",           "lat": 40.6339, "lon": -74.1122},
+    ],
+    "🧠 Mental Health": [
+        {"name": "Bellevue Hospital MH Clinic", "address": "462 1st Ave, Manhattan",       "lat": 40.7393, "lon": -73.9759, "phone": "212-562-3215",  "services": "Outpatient mental health, multilingual"},
+        {"name": "NYC Well / Crisis Line",      "address": "Citywide (call/text/chat)",    "lat": 40.7128, "lon": -74.0087, "phone": "1-888-692-9355", "services": "Free, 24/7, 200+ languages"},
+        {"name": "Lincoln Medical MH",          "address": "234 E 149th St, Bronx",        "lat": 40.8177, "lon": -73.9248, "phone": "718-579-5000",  "services": "Outpatient, bilingual Spanish"},
+        {"name": "Kings County Hospital MH",    "address": "451 Clarkson Ave, Brooklyn",   "lat": 40.6554, "lon": -73.9441, "phone": "718-245-3131",  "services": "Outpatient, multilingual"},
+        {"name": "Queens Hospital Center MH",   "address": "82-68 164th St, Queens",       "lat": 40.7170, "lon": -73.7918, "phone": "718-883-3000",  "services": "Outpatient, multilingual"},
+        {"name": "Richmond University MH",      "address": "355 Bard Ave, Staten Island",  "lat": 40.6266, "lon": -74.1231, "phone": "718-818-1234",  "services": "Outpatient mental health"},
+    ],
+    "⚖️ Legal Aid": [
+        {"name": "NYLAG Immigration Unit",       "address": "100 William St, Manhattan",      "lat": 40.7087, "lon": -74.0058, "phone": "212-613-5000", "services": "Deportation defense, asylum, DACA"},
+        {"name": "Make the Road NY — Brooklyn",  "address": "301 Grove St, Brooklyn",         "lat": 40.6762, "lon": -73.9224, "phone": "718-418-7690", "services": "Know Your Rights, legal intake, DACA"},
+        {"name": "Make the Road NY — Queens",    "address": "92-10 Roosevelt Ave, Queens",    "lat": 40.7461, "lon": -73.8921, "phone": "718-565-8500", "services": "Legal aid, DACA renewals"},
+        {"name": "Catholic Migration Services",  "address": "191 Joralemon St, Brooklyn",     "lat": 40.6923, "lon": -73.9902, "phone": "718-236-3000", "services": "Low-cost immigration legal services"},
+        {"name": "NMCIR",                        "address": "5030 Broadway, Manhattan",       "lat": 40.8695, "lon": -73.9214, "phone": "212-781-0355", "services": "Immigration legal aid, Northern Manhattan"},
+        {"name": "Bronx Legal Services",         "address": "349 E 149th St, Bronx",          "lat": 40.8160, "lon": -73.9188, "phone": "718-928-3700", "services": "Immigration, housing, family law"},
+        {"name": "Safe Passage Project",         "address": "40 W 39th St, Manhattan",        "lat": 40.7529, "lon": -73.9873, "phone": "212-532-4575", "services": "Children & youth immigration legal aid"},
+        {"name": "CUNY Citizenship Now!",        "address": "25 W 43rd St, Manhattan",        "lat": 40.7551, "lon": -73.9847, "phone": "212-817-7483", "services": "Naturalization, DACA, immigration screening"},
+    ],
+}
+
+RESOURCE_MAP_COLORS = {
+    "🍎 Food Pantry":    "green",
+    "🏛️ SNAP / Benefits": "blue",
+    "🏠 Housing Help":   "orange",
+    "🧠 Mental Health":  "purple",
+    "⚖️ Legal Aid":      "red",
+}
+
+CARD_STYLES = {
+    "🍎 Food Pantry":    ("#e8f5e9", "#2e7d32"),
+    "🏛️ SNAP / Benefits": ("#e3f2fd", "#1565c0"),
+    "🏠 Housing Help":   ("#fff3e0", "#e65100"),
+    "🧠 Mental Health":  ("#f3e5f5", "#6a1b9a"),
+    "⚖️ Legal Aid":      ("#fce4ec", "#b71c1c"),
+}
+
+VOLUNTEER_ORGS = [
+    {"name": "Make the Road New York",         "role": "Legal Intake & Know Your Rights Volunteer",  "desc": "Lead Know Your Rights workshops and assist immigrant community members at legal intake sessions.",  "boroughs": "Brooklyn, Queens", "commitment": "Flexible",     "link": "maketheroadny.org/volunteer"},
+    {"name": "CUNY Peer Mentorship Program",   "role": "Immigrant Student Peer Mentor",              "desc": "Support immigrant and undocumented peers navigating CUNY services, financial aid, and campus life.", "boroughs": "Your campus",      "commitment": "2–3 hrs/week", "link": "Contact your campus Student Affairs office"},
+    {"name": "IRC New York",                   "role": "Refugee Services Volunteer",                 "desc": "Help newly arrived refugees and asylum seekers access housing, employment, and essential services.",  "boroughs": "Manhattan, Brooklyn", "commitment": "4–6 hrs/week","link": "rescue.org/volunteer"},
+    {"name": "Northern Manhattan Coalition",   "role": "Immigration Legal Clinic Volunteer",         "desc": "Assist with DACA renewals and legal intake for immigrant residents of Northern Manhattan.",          "boroughs": "Manhattan",        "commitment": "Flexible",     "link": "nmcir.org"},
+    {"name": "City Harvest",                   "role": "Food Rescue Volunteer",                      "desc": "Pick up surplus food from restaurants and deliver it to pantries serving immigrant communities.",     "boroughs": "Citywide",         "commitment": "2–4 hrs/shift","link": "cityharvest.org/volunteer"},
+    {"name": "Safe Passage Project",           "role": "Youth Immigration Support Volunteer",        "desc": "Provide support to unaccompanied immigrant children and youth in immigration proceedings.",          "boroughs": "Manhattan",        "commitment": "Varies",       "link": "safepassageproject.org"},
+]
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
+
+
+def nearest_resource(campus_lat: float, campus_lon: float, resources: list) -> dict:
+    best = min(resources, key=lambda r: haversine_km(campus_lat, campus_lon, r["lat"], r["lon"]))
+    result = best.copy()
+    result["distance_km"] = haversine_km(campus_lat, campus_lon, best["lat"], best["lon"])
+    return result
+
+
+def get_card_style(category: str) -> tuple:
+    return CARD_STYLES.get(category, ("#f5f5f5", "#333"))
+
+
+def get_borough_from_address(address: str) -> str:
+    for b in ["Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"]:
+        if b in address:
+            return b
+    return "Other"
+
+
+@st.cache_data
+def get_all_resources() -> list:
+    all_res = []
+    for category, resources in NYC_RESOURCES.items():
+        for r in resources:
+            entry = r.copy()
+            entry["category"] = category
+            entry["borough"] = get_borough_from_address(r["address"])
+            all_res.append(entry)
+    return all_res
+
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -176,7 +290,7 @@ def render_summary_metrics(df: pd.DataFrame, filtered: pd.DataFrame):
     st.markdown("""
     <div class="main-header">
         <h1>🎓 ImmigrantIQ</h1>
-        <p>CUNY Immigrant Resource Equity & Risk Dashboard — Identifying where new support centers will do the most good</p>
+        <p>CUNY Immigrant Resource Equity & Risk Dashboard — Know the gap. Find resources. Take action.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -495,7 +609,340 @@ def render_campus_detail(df: pd.DataFrame):
         st.success(actions.get(row["priority_tier"], ""))
 
 
-# ── Panel 6: Methodology ──────────────────────────────────────────────────────
+# ── Panel 6: Resource Finder ──────────────────────────────────────────────────
+def render_resource_finder(df: pd.DataFrame):
+    st.subheader("🧭 Resource Finder")
+    st.caption("Browse food pantries, legal aid, benefits, housing, and mental health resources across NYC — filter by borough and type")
+
+    fc1, fc2, fc3 = st.columns(3)
+    with fc1:
+        borough_filter = st.selectbox(
+            "Borough", ["All Boroughs", "Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"],
+            key="rf_borough",
+        )
+    with fc2:
+        type_filter = st.selectbox(
+            "Resource Type", ["All Types"] + list(NYC_RESOURCES.keys()), key="rf_type",
+        )
+    with fc3:
+        campus_options = ["(Optional) Distance from campus"] + df.sort_values("gap_score", ascending=False)["name"].tolist()
+        campus_sel = st.selectbox("Campus (for distances)", campus_options, key="rf_campus")
+
+    campus_lat = campus_lon = None
+    if campus_sel != "(Optional) Distance from campus":
+        cr = df[df["name"] == campus_sel].iloc[0]
+        campus_lat, campus_lon = float(cr["lat"]), float(cr["lon"])
+
+    all_res = get_all_resources()
+    filtered_res = [
+        dict(r) for r in all_res
+        if (borough_filter == "All Boroughs" or r["borough"] == borough_filter)
+        and (type_filter == "All Types" or r["category"] == type_filter)
+    ]
+
+    if campus_lat is not None:
+        for r in filtered_res:
+            r["distance_km"] = haversine_km(campus_lat, campus_lon, r["lat"], r["lon"])
+        filtered_res.sort(key=lambda r: r["distance_km"])
+
+    st.markdown(f"**{len(filtered_res)} resource{'s' if len(filtered_res) != 1 else ''} found**")
+
+    zoom = 11 if borough_filter == "All Boroughs" else 12
+    center = [campus_lat, campus_lon] if campus_lat else [40.73, -73.95]
+    m = folium.Map(location=center, zoom_start=zoom, tiles="CartoDB positron")
+
+    if campus_lat:
+        folium.Marker(
+            location=[campus_lat, campus_lon],
+            popup=f"<b>{campus_sel}</b>",
+            tooltip=campus_sel,
+            icon=folium.Icon(color="darkblue", icon="info-sign"),
+        ).add_to(m)
+
+    for r in filtered_res:
+        color = RESOURCE_MAP_COLORS.get(r["category"], "gray")
+        dist_txt  = f"<br>📍 {r['distance_km']:.1f} km from campus" if "distance_km" in r else ""
+        phone_txt = f"<br>📞 {r['phone']}" if r.get("phone") else ""
+        folium.CircleMarker(
+            location=[r["lat"], r["lon"]],
+            radius=9, color=color, fill=True, fill_color=color, fill_opacity=0.75,
+            popup=f"<b>{r['name']}</b><br><i>{r['category']}</i><br>{r['address']}{phone_txt}{dist_txt}",
+            tooltip=f"{r['category']}: {r['name']}",
+        ).add_to(m)
+
+    st_folium(m, width="100%", height=400, returned_objects=[])
+
+    if not filtered_res:
+        st.info("No resources match the selected filters.")
+        return
+
+    ncols = 3
+    for i in range(0, len(filtered_res), ncols):
+        row_cols = st.columns(ncols)
+        for j, col in enumerate(row_cols):
+            if i + j >= len(filtered_res):
+                break
+            r = filtered_res[i + j]
+            bg, fg = get_card_style(r["category"])
+            dist_html  = f"<div style='color:{fg};font-weight:700;margin-top:0.4rem'>📍 {r['distance_km']:.1f} km away</div>" if "distance_km" in r else ""
+            phone_html = f"<div style='font-size:0.78rem;color:#444;margin-top:0.2rem'>📞 {r['phone']}</div>" if r.get("phone") else ""
+            svcs_html  = f"<div style='font-size:0.75rem;color:#666;margin-top:0.15rem'>{r['services']}</div>" if r.get("services") else ""
+            with col:
+                st.markdown(f"""
+                <div style="background:{bg};border-radius:8px;padding:0.8rem;margin-bottom:0.5rem;min-height:120px">
+                    <div style="font-size:0.78rem;color:{fg};font-weight:700">{r['category']}</div>
+                    <div style="font-size:0.88rem;font-weight:600;margin-top:0.15rem">{r['name']}</div>
+                    <div style="font-size:0.75rem;color:#555">{r['address']}</div>
+                    {phone_html}{svcs_html}{dist_html}
+                </div>
+                """, unsafe_allow_html=True)
+
+
+# ── Panel 7: Policy Simulator ─────────────────────────────────────────────────
+def simulate_center_placement(df: pd.DataFrame, n_centers: int) -> pd.DataFrame:
+    eligible = df[df["resource_tier"] < 3].copy()
+
+    def simulated_gap(r):
+        new_res = compute_resource_index(
+            resource_tier=3, legal_aid_km=r["legal_aid_km"],
+            has_center=True, has_initiative=True,
+        )
+        return compute_gap_score(r["need_index"], r["threat_index"], new_res)
+
+    eligible["simulated_gap"] = eligible.apply(simulated_gap, axis=1)
+    eligible["gap_reduction"] = eligible["gap_score"] - eligible["simulated_gap"]
+    cols = ["name", "borough", "gap_score", "simulated_gap", "gap_reduction", "resource_tier"]
+    top_idx = eligible["gap_reduction"].nlargest(n_centers).index
+    return eligible.loc[top_idx, cols].reset_index(drop=True)
+
+
+def render_policy_simulator(df: pd.DataFrame):
+    st.subheader("🏗️ Resource Allocation Simulator")
+    st.caption(
+        "Greedy algorithm: selects campuses where opening a new Immigrant Success Center "
+        "produces the largest gap score reduction"
+    )
+
+    n_centers = st.slider(
+        "New Immigrant Success Centers to open", min_value=1, max_value=5, value=3
+    )
+
+    sim = simulate_center_placement(df, n_centers)
+
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        st.markdown(f"#### Top {n_centers} Recommended Campuses")
+        for _, r in sim.iterrows():
+            st.markdown(f"""
+            <div style="background:#f8f9fa;border-radius:8px;padding:0.8rem;
+                        margin-bottom:0.5rem;border-left:4px solid #d73027">
+                <div style="font-weight:700;font-size:0.95rem">{r['name']}</div>
+                <div style="font-size:0.78rem;color:#666">
+                    {r['borough']} · Tier {int(r['resource_tier'])} → Tier 3
+                </div>
+                <div style="font-size:0.9rem;margin-top:0.3rem">
+                    <span style="color:#d73027;font-weight:700">{r['gap_score']:.1f}</span>
+                    &rarr;
+                    <span style="color:#27ae60;font-weight:700">{r['simulated_gap']:.1f}</span>
+                    <span style="color:#777"> &minus;{r['gap_reduction']:.1f} pts</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # System-wide impact
+        baseline_avg = df["gap_score"].mean()
+        sim_df = df.copy()
+        for _, r in sim.iterrows():
+            sim_df.loc[sim_df["name"] == r["name"], "gap_score"] = r["simulated_gap"]
+        new_avg = sim_df["gap_score"].mean()
+
+        st.markdown("---")
+        st.metric("System Avg (Before)", f"{baseline_avg:.1f}")
+        st.metric("System Avg (After)", f"{new_avg:.1f}",
+                  delta=f"{new_avg - baseline_avg:.1f}")
+
+    with col2:
+        st.markdown("#### Before vs. After Gap Scores")
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            name="Before", x=sim["name"], y=sim["gap_score"],
+            marker_color="#d73027",
+            text=sim["gap_score"].round(1), textposition="outside",
+        ))
+        fig.add_trace(go.Bar(
+            name="After (new center)", x=sim["name"], y=sim["simulated_gap"],
+            marker_color="#27ae60",
+            text=sim["simulated_gap"].round(1), textposition="outside",
+        ))
+        fig.update_layout(
+            barmode="group", height=420,
+            margin=dict(l=10, r=10, t=20, b=110),
+            plot_bgcolor="white", paper_bgcolor="white",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            xaxis_tickangle=-30,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+
+# ── Panel 8: Take Action ──────────────────────────────────────────────────────
+def render_take_action(df: pd.DataFrame):
+    st.subheader("✊ Take Action")
+    st.caption("ImmigrantIQ is a tool for action — find out what you can do right now")
+
+    student_tab, ally_tab, admin_tab = st.tabs([
+        "🎓 Immigrant Students", "🤝 Allies & Volunteers", "📊 Administrators & Advocates"
+    ])
+
+    with student_tab:
+        st.markdown("### Resources Available to You Right Now")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown("""
+**⚖️ Free Immigration Legal Aid**
+
+You may qualify for free legal help regardless of status:
+- **NYLAG**: (212) 613-5000
+- **Make the Road NY**: (718) 418-7690
+- **NMCIR**: (212) 781-0355
+- **Catholic Migration Services**: (718) 236-3000
+
+Use the **Resource Finder** tab to locate the closest office.
+            """)
+        with c2:
+            st.markdown("""
+**🍎 Food Access**
+
+Free food programs — no ID or status required:
+- NYC food pantries (citywide)
+- CUNY campus food pantries
+- **SNAP benefits** — DACA recipients may qualify depending on program
+
+Call **311** to find your nearest pantry.
+            """)
+        with c3:
+            st.markdown("""
+**🧠 Mental Health Support**
+
+Free, confidential, multilingual:
+- **NYC Well**: 1-888-NYC-WELL (24/7, free)
+- **CUNY Counseling**: Free for enrolled students
+- **Safe Horizon**: 1-800-621-HOPE
+
+You do NOT need US citizenship to access these services.
+            """)
+
+        st.markdown("---")
+
+        with st.expander("🛡️ Know Your Rights — ICE Encounter Quick Guide"):
+            st.markdown("""
+**You have rights regardless of immigration status.**
+
+**If an ICE officer approaches you:**
+- ✅ You have the right to **remain silent**
+- ✅ You have the right to **refuse to open your door** without a judge-signed warrant
+- ✅ You have the right to **speak to a lawyer** before answering questions
+- ❌ Do NOT sign anything without a lawyer present
+
+**If detained, say:** *"I am exercising my right to remain silent. I want to speak to a lawyer."*
+
+**Emergency legal lines:**
+- NYLAG: **(212) 613-5000**
+- Make the Road NY: **(718) 418-7690**
+
+**CUNY Policy**: CUNY campuses are designated sanctuary spaces. Campus Public Safety will not voluntarily share student information with ICE.
+            """)
+
+        st.info("**📚 NY Dream Act** — Undocumented and DACA students may qualify for NYS financial aid. Visit hesc.ny.gov to check eligibility.")
+
+    with ally_tab:
+        st.markdown("### Ways to Help — No Immigration Status Required")
+        st.markdown("These organizations need volunteers from all backgrounds — especially students with language skills, legal training, or extra time.")
+
+        for i in range(0, len(VOLUNTEER_ORGS), 2):
+            cols = st.columns(2)
+            for j, col in enumerate(cols):
+                if i + j >= len(VOLUNTEER_ORGS):
+                    break
+                org = VOLUNTEER_ORGS[i + j]
+                with col:
+                    st.markdown(f"""
+                    <div style="background:#f0f7ff;border-radius:10px;padding:1rem;
+                                margin-bottom:0.7rem;border-left:4px solid #1565c0">
+                        <div style="font-weight:700;font-size:0.95rem">{org['name']}</div>
+                        <div style="font-size:0.85rem;color:#1565c0;font-weight:600">{org['role']}</div>
+                        <div style="font-size:0.82rem;color:#444;margin-top:0.4rem">{org['desc']}</div>
+                        <div style="font-size:0.78rem;color:#666;margin-top:0.4rem">
+                            📍 {org['boroughs']} · ⏱️ {org['commitment']}
+                        </div>
+                        <div style="font-size:0.78rem;color:#1565c0;margin-top:0.3rem">🔗 {org['link']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("""
+**Other ways to support:**
+- Attend a CUNY Know Your Rights training and share it with your network
+- Donate to [Make the Road NY](https://maketheroadny.org), [NYLAG](https://nylag.org), or [IRC NYC](https://rescue.org)
+- Talk to your Student Government about passing an Immigrant Solidarity Resolution
+        """)
+
+    with admin_tab:
+        st.markdown("### Use This Data to Make the Case")
+
+        critical_n  = int((df["priority_tier"] == "Critical").sum())
+        high_n      = int((df["priority_tier"] == "High Priority").sum())
+        total_undoc = int(df["undocumented_est"].sum())
+        top_campus  = str(df.loc[df["gap_score"].idxmax(), "name"])
+        top_score   = float(df["gap_score"].max())
+
+        st.markdown(f"""
+**Key findings from the ImmigrantIQ dataset:**
+- **{critical_n} CUNY campuses** are rated Critical — they need a new Immigrant Success Center immediately
+- **{high_n} additional campuses** are High Priority — initiatives need upgrading to full centers
+- **{total_undoc:,} estimated undocumented students** across all 25 campuses currently lack adequate support
+- **{top_campus}** has the highest Gap Score ({top_score:.0f}/100) — the most underserved campus relative to ICE enforcement pressure
+        """)
+
+        st.markdown("Use the **🏗️ Policy Simulator** tab to model exactly where new centers would do the most good, then bring those numbers to your campus president.")
+
+        st.markdown("---")
+        col1, col2 = st.columns([3, 2])
+        with col1:
+            st.markdown("**📧 Template Email to Campus President**")
+            template = (
+                "Subject: Expanding Immigrant Student Support at [Campus Name]\n\n"
+                "Dear President [Name],\n\n"
+                "I am writing to share data from the ImmigrantIQ dashboard, which scores all 25 CUNY campuses "
+                "on immigrant student support resources relative to the enforcement threat their students face.\n\n"
+                "[Campus Name] received a Gap Score of [X]/100, placing it in the [Priority Tier] tier. "
+                "Our campus's immigrant students — estimated at [N] individuals — face a significant gap "
+                "between available resources and the risk they face.\n\n"
+                "I am requesting a meeting to discuss:\n"
+                "1. Upgrading our support infrastructure to a full Immigrant Student Success Center\n"
+                "2. Expanding Know Your Rights programming and legal aid clinic access\n"
+                "3. Increasing food security resources for students with limited aid eligibility\n\n"
+                "The full dataset and methodology are available in the ImmigrantIQ dashboard.\n\n"
+                "Thank you for your consideration.\n\n[Your name]"
+            )
+            st.text_area("Copy and customize:", template, height=300)
+        with col2:
+            st.markdown("**📥 Download Data**")
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇️ Download Full Gap Score Dataset (CSV)",
+                data=csv, file_name="immigrantiq_all_campuses.csv", mime="text/csv",
+            )
+            st.markdown("---")
+            st.markdown("""
+**Key contacts:**
+- [CUNY Office of Student Affairs](https://www.cuny.edu/current-students/student-affairs/)
+- [NYC MOIA](https://www.nyc.gov/site/immigrants/index.page)
+- [CUNY Office of Undocumented Students](https://www.cuny.edu/current-students/student-affairs/student-services/immigrant-student-success/)
+            """)
+
+
+# ── Panel 9: Methodology ──────────────────────────────────────────────────────
 def render_methodology():
     with st.expander("📐 Methodology & Data Sources", expanded=False):
         st.markdown("""
@@ -527,6 +974,46 @@ Higher Gap Score = more underserved relative to the threat students face.
 - Resource tier classification is point-in-time; programs evolve
         """)
 
+    with st.expander("🌐 NYC Open Data Integration", expanded=False):
+        st.markdown("""
+### Civic Data Sources & Open Data Alignment
+
+ImmigrantIQ is built on publicly available civic datasets and is designed to plug into
+the **NYC Open Data** platform and OTI's unified data infrastructure.
+
+| Category | Dataset | Source | NYC Open Data ID | Status |
+|----------|---------|--------|-----------------|--------|
+| ICE Enforcement | Arrest records by borough | Deportation Data Project (FOIA) | — | Batch-loaded |
+| Foreign-born % by zip | ACS B05002 (5-year estimates) | U.S. Census Bureau | — | Batch-loaded |
+| SNAP / HRA Centers | Human Resources Administration offices | NYC Open Data | `c4ci-25xt` | Live API ready |
+| Food Pantries | Community food program locations | NYC Open Data | `if26-z6xq` | Live API ready |
+| Housing Court Filings | Eviction filings by zip code | NYC Open Data | `6z8x-wfk4` | Live API ready |
+| Legal Aid Centers | MOIA immigration legal services | NYC.gov/immigrants | — | Batch-loaded |
+| Mental Health Clinics | NYC Health + Hospitals locations | NYC Open Data | `ymhw-9cz9` | Live API ready |
+
+### What "Live API Ready" Means
+
+Datasets marked **Live API ready** can be fetched at runtime from the Socrata Open Data API (SODA):
+
+```python
+import requests
+snap_centers = requests.get(
+    "https://data.cityofnewyork.us/resource/c4ci-25xt.json",
+    params={"$limit": 500}
+).json()
+```
+
+A live integration would:
+- Replace static Community Navigator locations with real-time coordinates
+- Add **eviction pressure** as a fourth Threat Index component
+- Surface **food insecurity** as an additional student need signal
+
+### Alignment with OTI's Mission
+ImmigrantIQ directly supports OTI's goal of unifying city data for public benefit —
+turning five disparate civic datasets into one actionable equity tool for CUNY
+administrators, MOIA, and immigrant advocates.
+        """)
+
 
 # ── Main app ──────────────────────────────────────────────────────────────────
 def main():
@@ -536,7 +1023,10 @@ def main():
 
     render_summary_metrics(df, filtered)
 
-    tab1, tab2, tab3, tab4 = st.tabs(["🗺️ Campus Map", "📋 Rankings", "📊 Analytics", "🏫 Campus Detail"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "🗺️ Campus Map", "📋 Rankings", "📊 Analytics",
+        "🧭 Resource Finder", "✊ Take Action", "🏗️ Policy Simulator", "🏫 Campus Detail",
+    ])
 
     with tab1:
         render_map(filtered)
@@ -548,6 +1038,15 @@ def main():
         render_analytics(df, filtered)
 
     with tab4:
+        render_resource_finder(df)
+
+    with tab5:
+        render_take_action(df)
+
+    with tab6:
+        render_policy_simulator(df)
+
+    with tab7:
         render_campus_detail(df)
 
     render_methodology()
