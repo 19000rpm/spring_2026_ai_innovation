@@ -296,7 +296,7 @@ def render_ranked_table(filtered: pd.DataFrame):
         }
         return colors.get(val, "")
 
-    styled = table.style.applymap(color_tier, subset=["Priority"])
+    styled = table.style.map(color_tier, subset=["Priority"])
     st.dataframe(styled, use_container_width=True, height=420)
 
     # CSV export
