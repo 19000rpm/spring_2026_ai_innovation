@@ -19,7 +19,7 @@ import plotly.graph_objects as go
 import folium
 from streamlit_folium import st_folium
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
 # ── Page config ──────────────────────────────────────────────────────────────
@@ -81,10 +81,10 @@ st.markdown("""
 @st.cache_data
 def load_data() -> pd.DataFrame:
     """Load processed campus scores, running pipeline if needed."""
-    csv_path = ROOT / "data" / "processed" / "campus_scores.csv"
+    csv_path = ROOT / "campus_scores.csv"
     if not csv_path.exists():
         st.info("Running data pipeline for the first time...")
-        from pipeline.build_dataset import run_pipeline
+        from build_dataset import run_pipeline
         run_pipeline()
     df = pd.read_csv(csv_path)
     # Ensure correct dtypes

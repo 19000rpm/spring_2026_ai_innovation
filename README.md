@@ -22,19 +22,13 @@ To produce a **Gap Score (0–100)** and priority tier for every campus, helping
 ## Project Structure
 
 ```
-immigrantiq/
-├── data/
-│   ├── cuny_campuses.py       # Seed data for all 25 CUNY campuses
-│   ├── enforcement_data.py    # ICE enforcement data by borough + zip
-│   └── processed/             # Pipeline output (auto-generated)
-│       ├── campus_scores.csv
-│       └── pipeline_report.txt
-├── pipeline/
-│   └── build_dataset.py       # Data pipeline (run first)
-├── model/
-│   └── gap_score.py           # Gap score model and scoring functions
-├── dashboard/
-│   └── app.py                 # Streamlit web dashboard
+spring_2026_ai_innovation/
+├── cuny_campuses.py       # Seed data for all 25 CUNY campuses
+├── enforcement_data.py    # ICE enforcement data by borough + zip
+├── build_dataset.py       # Data pipeline (run first)
+├── gap_score.py           # Gap score model and scoring functions
+├── app.py                 # Streamlit web dashboard
+├── campus_scores.csv      # Pipeline output (auto-generated)
 ├── requirements.txt
 └── README.md
 ```
@@ -57,13 +51,13 @@ pip install -r requirements.txt
 
 ### 3. Run the data pipeline
 ```bash
-python pipeline/build_dataset.py
+python build_dataset.py
 ```
-This generates `data/processed/campus_scores.csv` — the scored dataset.
+This generates `campus_scores.csv` — the scored dataset.
 
 ### 4. Launch the dashboard
 ```bash
-streamlit run dashboard/app.py
+python -m streamlit run app.py
 ```
 The app opens at `http://localhost:8501`
 

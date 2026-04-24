@@ -22,19 +22,19 @@ import pandas as pd
 import numpy as np
 
 # ── Path setup ──────────────────────────────────────────────────────────────
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
-from data.cuny_campuses import CUNY_CAMPUSES
-from data.enforcement_data import get_enforcement_index
-from model.gap_score import (
+from cuny_campuses import CUNY_CAMPUSES
+from enforcement_data import get_enforcement_index
+from gap_score import (
     compute_need_index,
     compute_threat_index,
     compute_resource_index,
     compute_gap_score,
 )
 
-PROCESSED_DIR = ROOT / "data" / "processed"
+PROCESSED_DIR = ROOT
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -189,8 +189,8 @@ def save_outputs(df: pd.DataFrame) -> None:
     with open(PROCESSED_DIR / "pipeline_report.txt", "w") as f:
         f.write("\n".join(report_lines))
 
-    print(f"     ✓ Saved: data/processed/campus_scores.csv")
-    print(f"     ✓ Saved: data/processed/pipeline_report.txt")
+    print(f"     ✓ Saved: campus_scores.csv")
+    print(f"     ✓ Saved: pipeline_report.txt")
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
