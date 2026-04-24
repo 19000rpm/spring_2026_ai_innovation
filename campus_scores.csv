@@ -1,0 +1,26 @@
+campus_id,name,borough,zip_code,lat,lon,total_enrollment,foreign_born_pct,undocumented_est,neighborhood_foreign_born_pct,enforcement_index,resource_tier,has_center,has_initiative,has_liaisons,legal_aid_km,need_index,threat_index,resource_index,gap_score,priority_tier
+BMCC,Borough of Manhattan Community College,Manhattan,10007,40.7182,-74.0094,24000,38.2,420,28.4,32.0,2,False,True,True,1.1,40.675,29.599999999999998,61.7,16.3,Low Priority
+BCC,Bronx Community College,Bronx,10453,40.8576,-73.9095,11500,44.7,310,48.6,94.0,1,False,False,True,3.4,67.43524844720497,90.31428571428572,33.8,55.2,High Priority
+HCC,Hostos Community College,Bronx,10451,40.8175,-73.9259,7200,51.3,280,53.2,100.0,1,False,False,True,2.8,87.26309523809525,98.45714285714286,35.599999999999994,66.6,High Priority
+KCC,Kingsborough Community College,Brooklyn,11235,40.5775,-73.9509,14000,42.1,195,38.5,53.0,2,False,True,True,5.2,48.64285714285714,52.957142857142856,49.4,30.5,Moderate
+LGCC,LaGuardia Community College,Queens,11101,40.7452,-73.9442,18000,58.6,580,52.7,78.0,3,True,True,True,0.9,91.10238095238097,82.62857142857143,83.3,53.3,High Priority
+QCC,Queensborough Community College,Queens,11364,40.7454,-73.7572,16000,47.3,390,45.9,77.0,1,False,False,True,6.1,67.20625,76.1,25.7,51.7,High Priority
+SICC,College of Staten Island,Staten Island,10314,40.6021,-74.1496,12500,22.4,95,22.1,52.0,1,False,False,True,8.7,9.9,38.2,17.900000000000002,14.2,Low Priority
+GUTTMAN,Stella and Charles Guttman Community College,Manhattan,10036,40.7573,-73.9875,1100,39.5,55,30.8,35.0,2,False,True,True,1.3,60.54642857142857,33.75714285714286,61.099999999999994,26.8,Moderate
+BARUCH,Baruch College,Manhattan,10010,40.7405,-73.9834,19500,35.8,165,26.1,35.0,2,False,True,True,1.7,29.58186813186813,29.728571428571428,59.9,11.7,Low Priority
+BROOKLYN,Brooklyn College,Brooklyn,11210,40.6313,-73.9518,16500,36.4,210,44.2,63.0,3,True,True,True,1.5,43.874025974025976,64.84285714285714,81.5,26.1,Moderate
+CCNY,City College of New York,Manhattan,10031,40.8196,-73.9497,16000,40.2,295,42.1,45.0,3,True,True,True,1.2,51.70669642857143,50.442857142857136,82.4,24.4,Low Priority
+CSI,College of Staten Island (Senior),Staten Island,10314,40.6018,-74.1502,12500,22.4,88,22.1,52.0,1,False,False,True,8.7,9.479999999999999,38.2,17.900000000000002,14.1,Low Priority
+HUNTER,Hunter College,Manhattan,10065,40.7685,-73.9645,23000,33.1,210,24.3,33.0,2,False,True,True,0.8,25.67996894409938,26.785714285714285,62.599999999999994,8.4,Low Priority
+JOHNJAY,John Jay College of Criminal Justice,Manhattan,10019,40.7693,-73.9895,15500,30.6,175,31.2,36.0,2,False,True,True,1.5,28.11774193548387,34.8,60.5,12.7,Low Priority
+LEHMAN,Lehman College,Bronx,10468,40.873,-73.8941,14000,46.8,380,46.3,90.0,1,False,False,True,4.1,68.88571428571429,85.54285714285713,31.700000000000003,54.6,High Priority
+MEDGAR,Medgar Evers College,Brooklyn,11225,40.6631,-73.9506,7000,43.7,165,41.8,66.0,1,False,False,True,2.9,59.760714285714286,64.88571428571427,35.3,42.5,Moderate
+NYCCT,New York City College of Technology,Brooklyn,11201,40.6935,-73.9866,18000,41.5,330,29.4,61.0,2,False,True,True,1.0,45.99642857142857,50.75714285714285,62.0,26.1,Moderate
+QUEENS,Queens College,Queens,11367,40.7368,-73.8198,20000,44.9,420,54.1,76.0,3,True,True,True,3.8,66.3607142857143,82.42857142857142,74.6,43.8,Moderate
+YORK,York College,Queens,11451,40.668,-73.794,8500,48.2,220,46.7,80.0,1,False,False,True,5.5,69.91890756302521,78.88571428571429,27.5,53.6,High Priority
+GRADCTR,The Graduate Center,Manhattan,10016,40.7488,-73.9841,4500,28.3,30,27.8,34.0,2,False,True,True,1.2,19.832142857142856,30.48571428571428,61.400000000000006,7.3,Low Priority
+CUNYSLAW,CUNY School of Law,Queens,11101,40.7471,-73.9451,700,24.1,12,52.7,78.0,2,False,True,True,0.7,36.667857142857144,82.62857142857143,62.9,32.8,Moderate
+SPH,CUNY Graduate School of Public Health,Manhattan,10027,40.8113,-73.9556,900,31.5,18,34.7,42.0,1,False,False,True,1.8,37.775000000000006,42.0,38.599999999999994,24.0,Low Priority
+JOURNALISM,CUNY Graduate School of Journalism,Manhattan,10036,40.7562,-73.9867,350,27.4,8,30.8,35.0,1,False,False,True,1.3,32.56428571428571,33.75714285714286,40.099999999999994,18.4,Low Priority
+SPS,CUNY School of Professional Studies,Manhattan,10036,40.7554,-73.9863,4200,29.8,65,30.8,35.0,1,False,False,True,1.3,30.028571428571432,33.75714285714286,40.099999999999994,17.3,Low Priority
+MACAULAY,Macaulay Honors College,Manhattan,10025,40.783,-73.9712,2100,26.7,20,29.5,37.0,1,False,False,True,1.6,20.946428571428573,34.042857142857144,39.2,13.5,Low Priority
