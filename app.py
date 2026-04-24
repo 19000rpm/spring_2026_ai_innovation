@@ -27,47 +27,47 @@ from gap_score import compute_resource_index, compute_gap_score
 # ── NYC Community Resource Data (NYC Open Data + MOIA) ───────────────────────
 NYC_RESOURCES = {
     "🍎 Food Pantry": [
-        {"name": "Holy Apostles Soup Kitchen",      "address": "275 9th Ave, Manhattan",          "lat": 40.7488, "lon": -74.0013},
-        {"name": "West Side Campaign Against Hunger","address": "263 W 86th St, Manhattan",         "lat": 40.7882, "lon": -73.9764},
-        {"name": "BronxWorks Food Pantry",           "address": "60 E Tremont Ave, Bronx",          "lat": 40.8467, "lon": -73.8946},
-        {"name": "Bronx Community Food Bank",        "address": "384 E 149th St, Bronx",            "lat": 40.8160, "lon": -73.9180},
-        {"name": "Brooklyn Community Food Pantry",   "address": "285 Schermerhorn St, Brooklyn",    "lat": 40.6892, "lon": -73.9874},
-        {"name": "St. John's Bread and Life",        "address": "795 Lexington Ave, Brooklyn",      "lat": 40.6783, "lon": -73.9400},
-        {"name": "Queens Community House",           "address": "108-25 62nd Dr, Queens",           "lat": 40.7229, "lon": -73.8456},
-        {"name": "Catholic Charities SI",            "address": "1011 First St, Staten Island",     "lat": 40.6315, "lon": -74.0738},
+        {"name": "Holy Apostles Soup Kitchen",       "address": "275 9th Ave, Manhattan",         "lat": 40.7488, "lon": -74.0013, "phone": "212-924-0167", "website": "holyapostles.org",          "services": "Hot meals Mon–Fri, no ID required"},
+        {"name": "West Side Campaign Against Hunger", "address": "263 W 86th St, Manhattan",       "lat": 40.7882, "lon": -73.9764, "phone": "212-362-3662", "website": "wscah.org",                 "services": "Groceries & prepared food, all welcome"},
+        {"name": "BronxWorks Food Pantry",            "address": "60 E Tremont Ave, Bronx",        "lat": 40.8467, "lon": -73.8946, "phone": "718-731-3114", "website": "bronxworks.org",            "services": "Emergency food, clothing, referrals"},
+        {"name": "Bronx Community Food Bank",         "address": "384 E 149th St, Bronx",          "lat": 40.8160, "lon": -73.9180, "phone": "718-843-8282", "website": "foodbanknyc.org",           "services": "Grocery distribution, no ID required"},
+        {"name": "Brooklyn Community Food Pantry",    "address": "285 Schermerhorn St, Brooklyn",  "lat": 40.6892, "lon": -73.9874, "phone": "212-566-7855", "website": "foodbanknyc.org",           "services": "Pantry & hot meals, walk-ins welcome"},
+        {"name": "St. John's Bread and Life",         "address": "795 Lexington Ave, Brooklyn",    "lat": 40.6783, "lon": -73.9400, "phone": "718-574-0058", "website": "breadandlife.org",          "services": "Hot meals & pantry, multilingual staff"},
+        {"name": "Queens Community House",            "address": "108-25 62nd Dr, Queens",         "lat": 40.7229, "lon": -73.8456, "phone": "718-592-5757", "website": "queenscommunityhouse.org",  "services": "Food pantry & social services"},
+        {"name": "Catholic Charities SI",             "address": "1011 First St, Staten Island",   "lat": 40.6315, "lon": -74.0738, "phone": "718-727-2900", "website": "catholiccharitiesny.org",   "services": "Food pantry, emergency assistance"},
     ],
     "🏛️ SNAP / Benefits": [
-        {"name": "HRA Waverly Center",  "address": "12 W 14th St, Manhattan",         "lat": 40.7374, "lon": -73.9974},
-        {"name": "HRA East End Center", "address": "345 E 102nd St, Manhattan",        "lat": 40.7899, "lon": -73.9461},
-        {"name": "HRA Melrose Center",  "address": "260 E 161st St, Bronx",            "lat": 40.8243, "lon": -73.9226},
-        {"name": "HRA Fulton Center",   "address": "114 Willoughby St, Brooklyn",      "lat": 40.6927, "lon": -73.9845},
-        {"name": "HRA Jamaica Center",  "address": "165-08 88th Ave, Queens",          "lat": 40.7067, "lon": -73.7894},
-        {"name": "HRA Richmond Center", "address": "95 Central Ave, Staten Island",    "lat": 40.6368, "lon": -74.0862},
+        {"name": "HRA Waverly Center",  "address": "12 W 14th St, Manhattan",       "lat": 40.7374, "lon": -73.9974, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
+        {"name": "HRA East End Center", "address": "345 E 102nd St, Manhattan",     "lat": 40.7899, "lon": -73.9461, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
+        {"name": "HRA Melrose Center",  "address": "260 E 161st St, Bronx",         "lat": 40.8243, "lon": -73.9226, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
+        {"name": "HRA Fulton Center",   "address": "114 Willoughby St, Brooklyn",   "lat": 40.6927, "lon": -73.9845, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
+        {"name": "HRA Jamaica Center",  "address": "165-08 88th Ave, Queens",       "lat": 40.7067, "lon": -73.7894, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
+        {"name": "HRA Richmond Center", "address": "95 Central Ave, Staten Island", "lat": 40.6368, "lon": -74.0862, "phone": "718-557-1399", "website": "nyc.gov/hra", "services": "SNAP, cash assistance, Medicaid"},
     ],
     "🏠 Housing Help": [
-        {"name": "Manhattan Housing Court",     "address": "111 Centre St, Manhattan",        "lat": 40.7147, "lon": -74.0022},
-        {"name": "Bronx Housing Court",         "address": "1118 Grand Concourse, Bronx",     "lat": 40.8451, "lon": -73.9265},
-        {"name": "Brooklyn Housing Court",      "address": "141 Livingston St, Brooklyn",     "lat": 40.6904, "lon": -73.9902},
-        {"name": "Queens Housing Court",        "address": "89-17 Sutphin Blvd, Queens",      "lat": 40.7010, "lon": -73.8082},
-        {"name": "Staten Island Housing Court", "address": "927 Castleton Ave, SI",           "lat": 40.6339, "lon": -74.1122},
+        {"name": "Manhattan Housing Court",     "address": "111 Centre St, Manhattan",      "lat": 40.7147, "lon": -74.0022, "phone": "646-386-5700", "website": "nycourts.gov/courts/nyc/housing", "services": "Eviction proceedings, tenant resources"},
+        {"name": "Bronx Housing Court",         "address": "1118 Grand Concourse, Bronx",   "lat": 40.8451, "lon": -73.9265, "phone": "718-618-3920", "website": "nycourts.gov/courts/nyc/housing", "services": "Eviction proceedings, tenant resources"},
+        {"name": "Brooklyn Housing Court",      "address": "141 Livingston St, Brooklyn",   "lat": 40.6904, "lon": -73.9902, "phone": "347-404-9133", "website": "nycourts.gov/courts/nyc/housing", "services": "Eviction proceedings, tenant resources"},
+        {"name": "Queens Housing Court",        "address": "89-17 Sutphin Blvd, Queens",   "lat": 40.7010, "lon": -73.8082, "phone": "718-262-7100", "website": "nycourts.gov/courts/nyc/housing", "services": "Eviction proceedings, tenant resources"},
+        {"name": "Staten Island Housing Court", "address": "927 Castleton Ave, SI",         "lat": 40.6339, "lon": -74.1122, "phone": "718-876-6000", "website": "nycourts.gov/courts/nyc/housing", "services": "Eviction proceedings, tenant resources"},
     ],
     "🧠 Mental Health": [
-        {"name": "Bellevue Hospital MH Clinic", "address": "462 1st Ave, Manhattan",       "lat": 40.7393, "lon": -73.9759, "phone": "212-562-3215",  "services": "Outpatient mental health, multilingual"},
-        {"name": "NYC Well / Crisis Line",      "address": "Citywide (call/text/chat)",    "lat": 40.7128, "lon": -74.0087, "phone": "1-888-692-9355", "services": "Free, 24/7, 200+ languages"},
-        {"name": "Lincoln Medical MH",          "address": "234 E 149th St, Bronx",        "lat": 40.8177, "lon": -73.9248, "phone": "718-579-5000",  "services": "Outpatient, bilingual Spanish"},
-        {"name": "Kings County Hospital MH",    "address": "451 Clarkson Ave, Brooklyn",   "lat": 40.6554, "lon": -73.9441, "phone": "718-245-3131",  "services": "Outpatient, multilingual"},
-        {"name": "Queens Hospital Center MH",   "address": "82-68 164th St, Queens",       "lat": 40.7170, "lon": -73.7918, "phone": "718-883-3000",  "services": "Outpatient, multilingual"},
-        {"name": "Richmond University MH",      "address": "355 Bard Ave, Staten Island",  "lat": 40.6266, "lon": -74.1231, "phone": "718-818-1234",  "services": "Outpatient mental health"},
+        {"name": "Bellevue Hospital MH Clinic", "address": "462 1st Ave, Manhattan",      "lat": 40.7393, "lon": -73.9759, "phone": "212-562-3215",  "website": "nychealthandhospitals.org/bellevue",    "services": "Outpatient mental health, multilingual"},
+        {"name": "NYC Well / Crisis Line",      "address": "Citywide (call/text/chat)",   "lat": 40.7128, "lon": -74.0087, "phone": "1-888-692-9355", "website": "nycwell.cityofnewyork.us",              "services": "Free, 24/7, 200+ languages"},
+        {"name": "Lincoln Medical MH",          "address": "234 E 149th St, Bronx",       "lat": 40.8177, "lon": -73.9248, "phone": "718-579-5000",  "website": "nychealthandhospitals.org/lincoln",     "services": "Outpatient, bilingual Spanish"},
+        {"name": "Kings County Hospital MH",    "address": "451 Clarkson Ave, Brooklyn",  "lat": 40.6554, "lon": -73.9441, "phone": "718-245-3131",  "website": "nychealthandhospitals.org/kings-county","services": "Outpatient, multilingual"},
+        {"name": "Queens Hospital Center MH",   "address": "82-68 164th St, Queens",      "lat": 40.7170, "lon": -73.7918, "phone": "718-883-3000",  "website": "nychealthandhospitals.org/queens",      "services": "Outpatient, multilingual"},
+        {"name": "Richmond University MH",      "address": "355 Bard Ave, Staten Island", "lat": 40.6266, "lon": -74.1231, "phone": "718-818-1234",  "website": "rumcsi.org",                            "services": "Outpatient mental health"},
     ],
     "⚖️ Legal Aid": [
-        {"name": "NYLAG Immigration Unit",       "address": "100 William St, Manhattan",      "lat": 40.7087, "lon": -74.0058, "phone": "212-613-5000", "services": "Deportation defense, asylum, DACA"},
-        {"name": "Make the Road NY — Brooklyn",  "address": "301 Grove St, Brooklyn",         "lat": 40.6762, "lon": -73.9224, "phone": "718-418-7690", "services": "Know Your Rights, legal intake, DACA"},
-        {"name": "Make the Road NY — Queens",    "address": "92-10 Roosevelt Ave, Queens",    "lat": 40.7461, "lon": -73.8921, "phone": "718-565-8500", "services": "Legal aid, DACA renewals"},
-        {"name": "Catholic Migration Services",  "address": "191 Joralemon St, Brooklyn",     "lat": 40.6923, "lon": -73.9902, "phone": "718-236-3000", "services": "Low-cost immigration legal services"},
-        {"name": "NMCIR",                        "address": "5030 Broadway, Manhattan",       "lat": 40.8695, "lon": -73.9214, "phone": "212-781-0355", "services": "Immigration legal aid, Northern Manhattan"},
-        {"name": "Bronx Legal Services",         "address": "349 E 149th St, Bronx",          "lat": 40.8160, "lon": -73.9188, "phone": "718-928-3700", "services": "Immigration, housing, family law"},
-        {"name": "Safe Passage Project",         "address": "40 W 39th St, Manhattan",        "lat": 40.7529, "lon": -73.9873, "phone": "212-532-4575", "services": "Children & youth immigration legal aid"},
-        {"name": "CUNY Citizenship Now!",        "address": "25 W 43rd St, Manhattan",        "lat": 40.7551, "lon": -73.9847, "phone": "212-817-7483", "services": "Naturalization, DACA, immigration screening"},
+        {"name": "NYLAG Immigration Unit",       "address": "100 William St, Manhattan",    "lat": 40.7087, "lon": -74.0058, "phone": "212-613-5000", "website": "nylag.org",                  "services": "Deportation defense, asylum, DACA"},
+        {"name": "Make the Road NY — Brooklyn",  "address": "301 Grove St, Brooklyn",       "lat": 40.6762, "lon": -73.9224, "phone": "718-418-7690", "website": "maketheroadny.org",          "services": "Know Your Rights, legal intake, DACA"},
+        {"name": "Make the Road NY — Queens",    "address": "92-10 Roosevelt Ave, Queens",  "lat": 40.7461, "lon": -73.8921, "phone": "718-565-8500", "website": "maketheroadny.org",          "services": "Legal aid, DACA renewals"},
+        {"name": "Catholic Migration Services",  "address": "191 Joralemon St, Brooklyn",   "lat": 40.6923, "lon": -73.9902, "phone": "718-236-3000", "website": "catholicmigration.org",      "services": "Low-cost immigration legal services"},
+        {"name": "NMCIR",                        "address": "5030 Broadway, Manhattan",     "lat": 40.8695, "lon": -73.9214, "phone": "212-781-0355", "website": "nmcir.org",                  "services": "Immigration legal aid, Northern Manhattan"},
+        {"name": "Bronx Legal Services",         "address": "349 E 149th St, Bronx",        "lat": 40.8160, "lon": -73.9188, "phone": "718-928-3700", "website": "legalservicesnyc.org",       "services": "Immigration, housing, family law"},
+        {"name": "Safe Passage Project",         "address": "40 W 39th St, Manhattan",      "lat": 40.7529, "lon": -73.9873, "phone": "212-532-4575", "website": "safepassageproject.org",     "services": "Children & youth immigration legal aid"},
+        {"name": "CUNY Citizenship Now!",        "address": "25 W 43rd St, Manhattan",      "lat": 40.7551, "lon": -73.9847, "phone": "212-817-7483", "website": "citizenshipnow.cuny.edu",    "services": "Naturalization, DACA, immigration screening"},
     ],
 }
 
@@ -96,6 +96,8 @@ VOLUNTEER_ORGS = [
     {"name": "Safe Passage Project",           "role": "Youth Immigration Support Volunteer",        "desc": "Provide support to unaccompanied immigrant children and youth in immigration proceedings.",          "boroughs": "Manhattan",        "commitment": "Varies",       "link": "safepassageproject.org"},
 ]
 
+
+KM_TO_MILES = 0.621371
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371.0
@@ -355,7 +357,7 @@ def render_map(filtered: pd.DataFrame):
                 <tr><td><b>Enrollment</b></td><td style="padding-left:10px">{row['total_enrollment']:,}</td></tr>
                 <tr><td><b>Foreign-born %</b></td><td style="padding-left:10px">{row['foreign_born_pct']:.1f}%</td></tr>
                 <tr><td><b>Est. Undocumented</b></td><td style="padding-left:10px">{row['undocumented_est']:,}</td></tr>
-                <tr><td><b>Legal Aid Distance</b></td><td style="padding-left:10px">{row['legal_aid_km']:.1f} km</td></tr>
+                <tr><td><b>Legal Aid Distance</b></td><td style="padding-left:10px">{row['legal_aid_km'] * KM_TO_MILES:.2f} mi</td></tr>
                 <tr><td><b>Resource Tier</b></td><td style="padding-left:10px">Tier {row['resource_tier']}</td></tr>
             </table>
         </div>
@@ -397,8 +399,9 @@ def render_ranked_table(filtered: pd.DataFrame):
         "resource_index": "Resources",
         "foreign_born_pct": "Foreign-Born %",
         "undocumented_est": "Est. Undoc.",
-        "legal_aid_km": "Legal Aid (km)",
+        "legal_aid_mi": "Legal Aid (mi)",
     }
+    display_df["legal_aid_mi"] = (display_df["legal_aid_km"] * KM_TO_MILES).round(2)
     table = display_df[list(display_cols.keys())].rename(columns=display_cols)
 
     def color_tier(val):
@@ -410,7 +413,18 @@ def render_ranked_table(filtered: pd.DataFrame):
         }
         return colors.get(val, "")
 
-    styled = table.style.map(color_tier, subset=["Priority"])
+    styled = (
+        table.style
+        .map(color_tier, subset=["Priority"])
+        .format({
+            "Gap Score":      "{:.2f}",
+            "Need":           "{:.2f}",
+            "Threat":         "{:.2f}",
+            "Resources":      "{:.2f}",
+            "Foreign-Born %": "{:.2f}",
+            "Legal Aid (mi)": "{:.2f}",
+        })
+    )
     st.dataframe(styled, use_container_width=True, height=420)
 
     # CSV export
@@ -553,7 +567,7 @@ def render_campus_detail(df: pd.DataFrame):
                 <div><b>Enrollment:</b> {row['total_enrollment']:,}</div>
                 <div><b>Foreign-born:</b> {row['foreign_born_pct']:.1f}%</div>
                 <div><b>Est. Undocumented:</b> {row['undocumented_est']:,}</div>
-                <div><b>Legal Aid:</b> {row['legal_aid_km']:.1f} km away</div>
+                <div><b>Legal Aid:</b> {row['legal_aid_km'] * KM_TO_MILES:.2f} mi away</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -642,8 +656,8 @@ def render_resource_finder(df: pd.DataFrame):
 
     if campus_lat is not None:
         for r in filtered_res:
-            r["distance_km"] = haversine_km(campus_lat, campus_lon, r["lat"], r["lon"])
-        filtered_res.sort(key=lambda r: r["distance_km"])
+            r["distance_mi"] = haversine_km(campus_lat, campus_lon, r["lat"], r["lon"]) * KM_TO_MILES
+        filtered_res.sort(key=lambda r: r["distance_mi"])
 
     st.markdown(f"**{len(filtered_res)} resource{'s' if len(filtered_res) != 1 else ''} found**")
 
@@ -661,12 +675,13 @@ def render_resource_finder(df: pd.DataFrame):
 
     for r in filtered_res:
         color = RESOURCE_MAP_COLORS.get(r["category"], "gray")
-        dist_txt  = f"<br>📍 {r['distance_km']:.1f} km from campus" if "distance_km" in r else ""
-        phone_txt = f"<br>📞 {r['phone']}" if r.get("phone") else ""
+        dist_txt    = f"<br>📍 {r['distance_mi']:.2f} mi from campus" if "distance_mi" in r else ""
+        phone_txt   = f"<br>📞 {r['phone']}" if r.get("phone") else ""
+        website_txt = (f"<br>🌐 <a href='https://{r['website']}' target='_blank'>{r['website']}</a>" if r.get("website") else "")
         folium.CircleMarker(
             location=[r["lat"], r["lon"]],
             radius=9, color=color, fill=True, fill_color=color, fill_opacity=0.75,
-            popup=f"<b>{r['name']}</b><br><i>{r['category']}</i><br>{r['address']}{phone_txt}{dist_txt}",
+            popup=f"<b>{r['name']}</b><br><i>{r['category']}</i><br>{r['address']}{phone_txt}{website_txt}{dist_txt}",
             tooltip=f"{r['category']}: {r['name']}",
         ).add_to(m)
 
@@ -684,16 +699,17 @@ def render_resource_finder(df: pd.DataFrame):
                 break
             r = filtered_res[i + j]
             bg, fg = get_card_style(r["category"])
-            dist_html  = f"<div style='color:{fg};font-weight:700;margin-top:0.4rem'>📍 {r['distance_km']:.1f} km away</div>" if "distance_km" in r else ""
-            phone_html = f"<div style='font-size:0.78rem;color:#444;margin-top:0.2rem'>📞 {r['phone']}</div>" if r.get("phone") else ""
-            svcs_html  = f"<div style='font-size:0.75rem;color:#666;margin-top:0.15rem'>{r['services']}</div>" if r.get("services") else ""
+            dist_html    = (f"<div style='color:{fg};font-weight:700;margin-top:0.4rem'>📍 {r['distance_mi']:.2f} mi away</div>" if "distance_mi" in r else "")
+            phone_html   = (f"<div style='font-size:0.78rem;color:#444;margin-top:0.2rem'>📞 {r['phone']}</div>" if r.get("phone") else "")
+            svcs_html    = (f"<div style='font-size:0.75rem;color:#666;margin-top:0.15rem'>{r['services']}</div>" if r.get("services") else "")
+            website_html = (f"<div style='font-size:0.78rem;margin-top:0.2rem'>🌐 <a href='https://{r['website']}' target='_blank' style='color:{fg}'>{r['website']}</a></div>" if r.get("website") else "")
             with col:
                 st.markdown(f"""
                 <div style="background:{bg};border-radius:8px;padding:0.8rem;margin-bottom:0.5rem;min-height:120px">
                     <div style="font-size:0.78rem;color:{fg};font-weight:700">{r['category']}</div>
                     <div style="font-size:0.88rem;font-weight:600;margin-top:0.15rem">{r['name']}</div>
                     <div style="font-size:0.75rem;color:#555">{r['address']}</div>
-                    {phone_html}{svcs_html}{dist_html}
+                    {phone_html}{website_html}{svcs_html}{dist_html}
                 </div>
                 """, unsafe_allow_html=True)
 
