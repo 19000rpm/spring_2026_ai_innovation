@@ -251,34 +251,38 @@ def score_to_radius(score: float) -> int:
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
-def render_sidebar(df: pd.DataFrame):
+def render_sidebar(df: pd.DataFrame, lang: str = 'en'):
     st.sidebar.image(
         "https://www.cuny.edu/wp-content/uploads/sites/4/page-assets/home-preview/branding-guidelines/logo/Correct_Usage_Logo.png",
         width=160,
     )
-    st.sidebar.markdown("## 🎛️ Filters")
+    st.sidebar.markdown(f"## 🎛️ {tr('Filters', lang)}")
 
-    boroughs = ["All Boroughs"] + sorted(df["borough"].unique().tolist())
-    selected_borough = st.sidebar.selectbox("Borough", boroughs)
+    borough_raw   = ["All Boroughs"] + sorted(df["borough"].unique().tolist())
+    borough_t     = [tr(b, lang) for b in borough_raw]
+    borough_sel_t = st.sidebar.selectbox(tr("Borough", lang), borough_t)
+    selected_borough = borough_raw[borough_t.index(borough_sel_t)]
 
-    tiers = ["All Tiers"] + ["Critical", "High Priority", "Moderate", "Low Priority"]
-    selected_tier = st.sidebar.selectbox("Priority Tier", tiers)
+    tier_raw   = ["All Tiers", "Critical", "High Priority", "Moderate", "Low Priority"]
+    tier_t     = [tr(t, lang) for t in tier_raw]
+    tier_sel_t = st.sidebar.selectbox(tr("Priority Tier", lang), tier_t)
+    selected_tier = tier_raw[tier_t.index(tier_sel_t)]
 
     min_score, max_score = st.sidebar.slider(
-        "Gap Score Range",
+        tr("Gap Score Range", lang),
         min_value=0, max_value=100,
         value=(0, 100), step=5
     )
 
     show_only_gaps = st.sidebar.toggle(
-        "🔎 Priority Zones Only",
+        tr("🔎 Priority Zones Only", lang),
         value=False,
-        help="Show only campuses with High Priority or Critical gap scores"
+        help=tr("Show only campuses with High Priority or Critical gap scores", lang)
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📊 About the Score")
-    st.sidebar.markdown("""
+    st.sidebar.markdown(f"### 📊 {tr('About the Score', lang)}")
+    st.sidebar.markdown(tr("""
 **Gap Score** = Need + Threat − Resources
 
 - 🔴 **Critical (75–100)**: Immediate priority for new center
@@ -287,7 +291,7 @@ def render_sidebar(df: pd.DataFrame):
 - 🔵 **Low (0–24)**: Relatively well-served
 
 *Data sources: CUNY IR, Deportation Data Project, MOIA, ACS Census*
-    """)
+    """, lang))
 
     return selected_borough, selected_tier, min_score, max_score, show_only_gaps
 
@@ -337,9 +341,9 @@ def render_summary_metrics(df: pd.DataFrame, filtered: pd.DataFrame, lang: str =
 
 
 # ── Panel 2: Campus Map ───────────────────────────────────────────────────────
-def render_map(filtered: pd.DataFrame):
-    st.subheader("📍 Campus Risk Map")
-    st.caption("Circle size = gap score magnitude · Color = priority tier · Click any campus for details")
+def render_map(filtered: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("📍 Campus Risk Map", lang))
+    st.caption(tr("Circle size = gap score magnitude · Color = priority tier · Click any campus for details", lang))
 
     m = folium.Map(
         location=[40.73, -73.95],
@@ -399,8 +403,8 @@ def render_map(filtered: pd.DataFrame):
 
 
 # ── Panel 3: Ranked Table ─────────────────────────────────────────────────────
-def render_ranked_table(filtered: pd.DataFrame):
-    st.subheader("📋 Campus Rankings by Gap Score")
+def render_ranked_table(filtered: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("📋 Campus Rankings by Gap Score", lang))
 
     display_df = (
         filtered
@@ -409,21 +413,28 @@ def render_ranked_table(filtered: pd.DataFrame):
     )
     display_df.index += 1  # 1-based rank
 
-    # Build styled display
     display_cols = {
-        "name": "Campus",
-        "borough": "Borough",
-        "gap_score": "Gap Score",
-        "priority_tier": "Priority",
-        "need_index": "Need",
-        "threat_index": "Threat",
-        "resource_index": "Resources",
-        "foreign_born_pct": "Foreign-Born %",
-        "undocumented_est": "Est. Undoc.",
-        "legal_aid_mi": "Legal Aid (mi)",
+        "name":             tr("Campus", lang),
+        "borough":          tr("Borough", lang),
+        "gap_score":        tr("Gap Score", lang),
+        "priority_tier":    tr("Priority", lang),
+        "need_index":       tr("Need", lang),
+        "threat_index":     tr("Threat", lang),
+        "resource_index":   tr("Resources", lang),
+        "foreign_born_pct": tr("Foreign-Born %", lang),
+        "undocumented_est": tr("Est. Undoc.", lang),
+        "legal_aid_mi":     tr("Legal Aid (mi)", lang),
     }
     display_df["legal_aid_mi"] = (display_df["legal_aid_km"] * KM_TO_MILES).round(2)
     table = display_df[list(display_cols.keys())].rename(columns=display_cols)
+
+    col_priority   = tr("Priority", lang)
+    col_gap        = tr("Gap Score", lang)
+    col_need       = tr("Need", lang)
+    col_threat     = tr("Threat", lang)
+    col_resources  = tr("Resources", lang)
+    col_fb_pct     = tr("Foreign-Born %", lang)
+    col_legal      = tr("Legal Aid (mi)", lang)
 
     def color_tier(val):
         colors = {
@@ -436,22 +447,21 @@ def render_ranked_table(filtered: pd.DataFrame):
 
     styled = (
         table.style
-        .map(color_tier, subset=["Priority"])
+        .map(color_tier, subset=[col_priority])
         .format({
-            "Gap Score":      "{:.2f}",
-            "Need":           "{:.2f}",
-            "Threat":         "{:.2f}",
-            "Resources":      "{:.2f}",
-            "Foreign-Born %": "{:.2f}",
-            "Legal Aid (mi)": "{:.2f}",
+            col_gap:       "{:.2f}",
+            col_need:      "{:.2f}",
+            col_threat:    "{:.2f}",
+            col_resources: "{:.2f}",
+            col_fb_pct:    "{:.2f}",
+            col_legal:     "{:.2f}",
         })
     )
     st.dataframe(styled, use_container_width=True, height=420)
 
-    # CSV export
     csv = display_df.to_csv(index=False).encode("utf-8")
     st.download_button(
-        label="⬇️ Export Full Dataset as CSV",
+        label=tr("⬇️ Export Full Dataset as CSV", lang),
         data=csv,
         file_name="immigrantiq_campus_scores.csv",
         mime="text/csv",
@@ -643,25 +653,29 @@ def render_campus_detail(df: pd.DataFrame, lang: str = 'en'):
 
 # ── Panel 6: Resource Finder ──────────────────────────────────────────────────
 def render_resource_finder(df: pd.DataFrame, lang: str = 'en'):
-    st.subheader("🧭 Resource Finder")
-    st.caption("Browse food pantries, legal aid, benefits, housing, and mental health resources across NYC — filter by borough and type")
+    st.subheader(tr("🧭 Resource Finder", lang))
+    st.caption(tr("Browse food pantries, legal aid, benefits, housing, and mental health resources across NYC — filter by borough and type", lang))
+
+    # Build translated ↔ original category maps
+    orig_cats = list(NYC_RESOURCES.keys())
+    cat_t2o   = {tr(k, lang): k for k in orig_cats}   # translated label → original key
+    cat_o2t   = {k: tr(k, lang) for k in orig_cats}   # original key → translated label
 
     fc1, fc2, fc3 = st.columns(3)
     with fc1:
-        borough_filter = st.selectbox(
-            "Borough", ["All Boroughs", "Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"],
-            key="rf_borough",
-        )
+        borough_options_t = [tr(b, lang) for b in ["All Boroughs", "Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"]]
+        borough_sel_t = st.selectbox(tr("Borough", lang), borough_options_t, key="rf_borough")
+        borough_filter = ["All Boroughs", "Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"][borough_options_t.index(borough_sel_t)]
     with fc2:
-        type_filter = st.selectbox(
-            "Resource Type", ["All Types"] + list(NYC_RESOURCES.keys()), key="rf_type",
-        )
+        type_options_t = [tr("All Types", lang)] + [cat_o2t[k] for k in orig_cats]
+        type_sel_t = st.selectbox(tr("Resource Type", lang), type_options_t, key="rf_type")
+        type_filter = "All Types" if type_sel_t == tr("All Types", lang) else cat_t2o.get(type_sel_t, type_sel_t)
     with fc3:
-        campus_options = ["(Optional) Distance from campus"] + df.sort_values("gap_score", ascending=False)["name"].tolist()
-        campus_sel = st.selectbox("Campus (for distances)", campus_options, key="rf_campus")
+        campus_options = [tr("(Optional) Distance from campus", lang)] + df.sort_values("gap_score", ascending=False)["name"].tolist()
+        campus_sel = st.selectbox(tr("Campus (for distances)", lang), campus_options, key="rf_campus")
 
     campus_lat = campus_lon = None
-    if campus_sel != "(Optional) Distance from campus":
+    if campus_sel != tr("(Optional) Distance from campus", lang):
         cr = df[df["name"] == campus_sel].iloc[0]
         campus_lat, campus_lon = float(cr["lat"]), float(cr["lon"])
 
@@ -724,7 +738,7 @@ def render_resource_finder(df: pd.DataFrame, lang: str = 'en'):
             with col:
                 st.markdown(f"""
                 <div style="background:{bg};border-radius:8px;padding:0.8rem;margin-bottom:0.5rem;min-height:120px">
-                    <div style="font-size:0.78rem;color:{fg};font-weight:700">{r['category']}</div>
+                    <div style="font-size:0.78rem;color:{fg};font-weight:700">{cat_o2t.get(r['category'], r['category'])}</div>
                     <div style="font-size:0.88rem;font-weight:600;margin-top:0.15rem">{r['name']}</div>
                     <div style="font-size:0.75rem;color:#555">{r['address']}</div>
                     {phone_html}{website_html}{svcs_html}{dist_html}
@@ -891,8 +905,8 @@ You do NOT need US citizenship to access these services.
         st.info(tr("**📚 NY Dream Act** — Undocumented and DACA students may qualify for NYS financial aid. Visit hesc.ny.gov to check eligibility.", lang))
 
     with ally_tab:
-        st.markdown("### Ways to Help — No Immigration Status Required")
-        st.markdown("These organizations need volunteers from all backgrounds — especially students with language skills, legal training, or extra time.")
+        st.markdown(f"### {tr('Ways to Help — No Immigration Status Required', lang)}")
+        st.markdown(tr("These organizations need volunteers from all backgrounds — especially students with language skills, legal training, or extra time.", lang))
 
         for i in range(0, len(VOLUNTEER_ORGS), 2):
             cols = st.columns(2)
@@ -905,8 +919,8 @@ You do NOT need US citizenship to access these services.
                     <div style="background:#f0f7ff;border-radius:10px;padding:1rem;
                                 margin-bottom:0.7rem;border-left:4px solid #1565c0">
                         <div style="font-weight:700;font-size:0.95rem">{org['name']}</div>
-                        <div style="font-size:0.85rem;color:#1565c0;font-weight:600">{org['role']}</div>
-                        <div style="font-size:0.82rem;color:#444;margin-top:0.4rem">{org['desc']}</div>
+                        <div style="font-size:0.85rem;color:#1565c0;font-weight:600">{tr(org['role'], lang)}</div>
+                        <div style="font-size:0.82rem;color:#444;margin-top:0.4rem">{tr(org['desc'], lang)}</div>
                         <div style="font-size:0.78rem;color:#666;margin-top:0.4rem">
                             📍 {org['boroughs']} · ⏱️ {org['commitment']}
                         </div>
@@ -915,15 +929,15 @@ You do NOT need US citizenship to access these services.
                     """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("""
+        st.markdown(tr("""
 **Other ways to support:**
 - Attend a CUNY Know Your Rights training and share it with your network
 - Donate to [Make the Road NY](https://maketheroadny.org), [NYLAG](https://nylag.org), or [IRC NYC](https://rescue.org)
 - Talk to your Student Government about passing an Immigrant Solidarity Resolution
-        """)
+        """, lang))
 
     with admin_tab:
-        st.markdown("### Use This Data to Make the Case")
+        st.markdown(f"### {tr('Use This Data to Make the Case', lang)}")
 
         critical_n  = int((df["priority_tier"] == "Critical").sum())
         high_n      = int((df["priority_tier"] == "High Priority").sum())
@@ -931,21 +945,21 @@ You do NOT need US citizenship to access these services.
         top_campus  = str(df.loc[df["gap_score"].idxmax(), "name"])
         top_score   = float(df["gap_score"].max())
 
-        st.markdown(f"""
+        st.markdown(tr(f"""
 **Key findings from the ImmigrantIQ dataset:**
 - **{critical_n} CUNY campuses** are rated Critical — they need a new Immigrant Success Center immediately
 - **{high_n} additional campuses** are High Priority — initiatives need upgrading to full centers
 - **{total_undoc:,} estimated undocumented students** across all 25 campuses currently lack adequate support
 - **{top_campus}** has the highest Gap Score ({top_score:.0f}/100) — the most underserved campus relative to ICE enforcement pressure
-        """)
+        """, lang))
 
-        st.markdown("Use the **🏗️ Policy Simulator** tab to model exactly where new centers would do the most good, then bring those numbers to your campus president.")
+        st.markdown(tr("Use the **🏗️ Policy Simulator** tab to model exactly where new centers would do the most good, then bring those numbers to your campus president.", lang))
 
         st.markdown("---")
         col1, col2 = st.columns([3, 2])
         with col1:
-            st.markdown("**📧 Template Email to Campus President**")
-            template = (
+            st.markdown(f"**{tr('📧 Template Email to Campus President', lang)}**")
+            template = tr(
                 "Subject: Expanding Immigrant Student Support at [Campus Name]\n\n"
                 "Dear President [Name],\n\n"
                 "I am writing to share data from the ImmigrantIQ dashboard, which scores all 25 CUNY campuses "
@@ -958,23 +972,24 @@ You do NOT need US citizenship to access these services.
                 "2. Expanding Know Your Rights programming and legal aid clinic access\n"
                 "3. Increasing food security resources for students with limited aid eligibility\n\n"
                 "The full dataset and methodology are available in the ImmigrantIQ dashboard.\n\n"
-                "Thank you for your consideration.\n\n[Your name]"
+                "Thank you for your consideration.\n\n[Your name]",
+                lang
             )
-            st.text_area("Copy and customize:", template, height=300)
+            st.text_area(tr("Copy and customize:", lang), template, height=300)
         with col2:
-            st.markdown("**📥 Download Data**")
+            st.markdown(f"**{tr('📥 Download Data', lang)}**")
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                "⬇️ Download Full Gap Score Dataset (CSV)",
+                tr("⬇️ Download Full Gap Score Dataset (CSV)", lang),
                 data=csv, file_name="immigrantiq_all_campuses.csv", mime="text/csv",
             )
             st.markdown("---")
-            st.markdown("""
+            st.markdown(tr("""
 **Key contacts:**
 - [CUNY Office of Student Affairs](https://www.cuny.edu/current-students/student-affairs/)
 - [NYC MOIA](https://www.nyc.gov/site/immigrants/index.page)
 - [CUNY Office of Undocumented Students](https://www.cuny.edu/current-students/student-affairs/student-services/immigrant-student-success/)
-            """)
+            """, lang))
 
 
 # ── Panel 9: Methodology ──────────────────────────────────────────────────────
@@ -1064,7 +1079,7 @@ def render_translate_widget() -> str:
 def main():
     lang = render_translate_widget()
     df = load_data()
-    borough, tier, min_s, max_s, priority_only = render_sidebar(df)
+    borough, tier, min_s, max_s, priority_only = render_sidebar(df, lang)
     filtered = filter_data(df, borough, tier, min_s, max_s, priority_only)
 
     render_summary_metrics(df, filtered, lang)
@@ -1080,10 +1095,10 @@ def main():
     ])
 
     with tab1:
-        render_map(filtered)
+        render_map(filtered, lang)
 
     with tab2:
-        render_ranked_table(filtered)
+        render_ranked_table(filtered, lang)
 
     with tab3:
         render_analytics(df, filtered, lang)
