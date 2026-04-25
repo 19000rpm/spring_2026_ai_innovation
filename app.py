@@ -189,35 +189,12 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.5rem 1rem;
     }
-    /* ── Google Translate widget ── */
-    #translate-widget {
-        position: fixed;
-        top: 60px;
-        right: 16px;
-        z-index: 999999;
-        background: white;
-        border-radius: 10px;
-        padding: 6px 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    #translate-widget .tw-label {
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: #555;
-        white-space: nowrap;
-    }
-    .goog-te-gadget         { font-family: inherit !important; font-size: 0.82rem !important; color: #1a1a2e !important; }
-    .goog-te-gadget-simple  { background: #f5f7fa !important; border: 1px solid #ddd !important; border-radius: 6px !important; padding: 3px 6px !important; }
-    .goog-te-gadget-simple img { display: none !important; }
-    .goog-te-menu-value, .goog-te-menu-value span { color: #1a1a2e !important; font-size: 0.82rem !important; }
-    .goog-logo-link         { display: none !important; }
-    .goog-te-gadget > span  { display: none !important; }
-    /* Push body down when translation bar appears at top */
-    body { top: 0px !important; }
-    .skiptranslate > iframe { height: 0 !important; border: none !important; }
+    /* Google translate artifacts — hidden */
+    .goog-te-banner-frame, .skiptranslate > iframe { display: none !important; height: 0 !important; }
+    .goog-te-gadget { display: none !important; }
+    body { top: 0 !important; }
+    /* Push main content below fixed language bar */
+    .block-container { padding-top: 5rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1060,29 +1037,118 @@ administrators, MOIA, and immigrant advocates.
         """)
 
 
-# ── Google Translate widget ───────────────────────────────────────────────────
+# ── Language bar ─────────────────────────────────────────────────────────────
 def render_translate_widget():
     st.markdown("""
-    <div id="translate-widget">
-        <span class="tw-label">🌐 Translate</span>
-        <div id="google_translate_element"></div>
+    <!-- Hidden Google Translate initializer -->
+    <div id="google_translate_element"
+         style="position:absolute;top:-9999px;left:-9999px;opacity:0;pointer-events:none">
     </div>
-    <script type="text/javascript">
+
+    <!-- Fixed language bar -->
+    <div id="lang-bar">
+        <span class="lb-globe">🌐</span>
+        <button class="lbtn active" id="lbtn-en"    onclick="switchLang('en')">
+            <span class="lflag">🇺🇸</span><span class="lname">English</span>
+        </button>
+        <button class="lbtn" id="lbtn-es"    onclick="switchLang('es')">
+            <span class="lflag">🇪🇸</span><span class="lname">Español</span>
+        </button>
+        <button class="lbtn" id="lbtn-zh-CN" onclick="switchLang('zh-CN')">
+            <span class="lflag">🇨🇳</span><span class="lname">中文</span>
+        </button>
+        <button class="lbtn" id="lbtn-ru"    onclick="switchLang('ru')">
+            <span class="lflag">🇷🇺</span><span class="lname">Русский</span>
+        </button>
+        <button class="lbtn" id="lbtn-bn"    onclick="switchLang('bn')">
+            <span class="lflag">🇧🇩</span><span class="lname">বাংলা</span>
+        </button>
+        <button class="lbtn" id="lbtn-ht"    onclick="switchLang('ht')">
+            <span class="lflag">🇭🇹</span><span class="lname">Kreyòl</span>
+        </button>
+    </div>
+
+    <style>
+        #lang-bar {
+            position: fixed;
+            top: 60px; left: 0; right: 0;
+            z-index: 999999;
+            background: linear-gradient(90deg, #1a1a2e 0%, #0f3460 100%);
+            padding: 7px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+        }
+        .lb-globe { font-size: 1.1rem; color: #a8c0d6; margin-right: 2px; }
+        .lbtn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 5px 14px;
+            cursor: pointer;
+            color: #e8f0fb;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: background 0.18s, border-color 0.18s;
+        }
+        .lbtn:hover  { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }
+        .lbtn.active { background: white; color: #1a1a2e; border-color: white; font-weight: 700; }
+        .lflag { font-size: 1.15rem; line-height: 1; }
+        .lname { font-size: 0.83rem; }
+    </style>
+
+    <script>
     function googleTranslateElementInit() {
-        // Avoid double-init on Streamlit re-renders
         if (document.querySelector('#google_translate_element .goog-te-gadget')) return;
         new google.translate.TranslateElement({
             pageLanguage: 'en',
-            includedLanguages: 'es,zh-CN,ru,bn,ht,ar,ko,fr',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false,
-            multilanguagePage: true
+            includedLanguages: 'es,zh-CN,ru,bn,ht',
+            autoDisplay: false
         }, 'google_translate_element');
     }
+
+    function switchLang(lang) {
+        document.querySelectorAll('.lbtn').forEach(function(b) { b.classList.remove('active'); });
+        var btn = document.getElementById('lbtn-' + lang);
+        if (btn) btn.classList.add('active');
+
+        if (lang === 'en') {
+            document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+            document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + location.hostname;
+            location.reload();
+            return;
+        }
+
+        var sel = document.querySelector('.goog-te-combo');
+        if (sel) {
+            sel.value = lang;
+            sel.dispatchEvent(new Event('change'));
+        } else {
+            // Widget not ready yet — set cookie and reload
+            document.cookie = 'googtrans=/en/' + lang + '; path=/';
+            document.cookie = 'googtrans=/en/' + lang + '; path=/; domain=.' + location.hostname;
+            location.reload();
+        }
+    }
+
+    // Restore active button from cookie on load
+    (function() {
+        var m = document.cookie.match(/googtrans=\/en\/([^;]+)/);
+        if (m) {
+            var lang = decodeURIComponent(m[1]);
+            document.querySelectorAll('.lbtn').forEach(function(b) { b.classList.remove('active'); });
+            var active = document.getElementById('lbtn-' + lang);
+            if (active) active.classList.add('active');
+        }
+    })();
     </script>
-    <script type="text/javascript"
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
-    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     """, unsafe_allow_html=True)
 
 
