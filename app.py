@@ -308,21 +308,22 @@ def filter_data(df, borough, tier, min_s, max_s, priority_only):
 
 
 # ── Panel 1: Summary metrics ──────────────────────────────────────────────────
-def render_summary_metrics(df: pd.DataFrame, filtered: pd.DataFrame):
-    st.markdown("""
+def render_summary_metrics(df: pd.DataFrame, filtered: pd.DataFrame, lang: str = 'en'):
+    subtitle = tr("CUNY Immigrant Resource Equity & Risk Dashboard: Know the gap. Find resources. Take action.", lang)
+    st.markdown(f"""
     <div class="main-header">
         <h1>🎓 ImmigrantIQ</h1>
-        <p>CUNY Immigrant Resource Equity & Risk Dashboard — Know the gap. Find resources. Take action.</p>
+        <p>{subtitle}</p>
     </div>
     """, unsafe_allow_html=True)
 
     cols = st.columns(5)
     metrics = [
-        ("Total Campuses", len(filtered), None, "low"),
-        ("🔴 Critical", int((filtered["priority_tier"] == "Critical").sum()), "need immediate action", "critical"),
-        ("🟠 High Priority", int((filtered["priority_tier"] == "High Priority").sum()), "need expanded support", "high"),
-        ("Avg Gap Score", f"{filtered['gap_score'].mean():.1f}", "system-wide average", "moderate"),
-        ("Students at Risk", f"{filtered['undocumented_est'].sum():,}", "est. undocumented", "low"),
+        (tr("Total Campuses", lang),    len(filtered), None, "low"),
+        (tr("🔴 Critical", lang),       int((filtered["priority_tier"] == "Critical").sum()),    tr("need immediate action", lang),  "critical"),
+        (tr("🟠 High Priority", lang),  int((filtered["priority_tier"] == "High Priority").sum()), tr("need expanded support", lang), "high"),
+        (tr("Avg Gap Score", lang),     f"{filtered['gap_score'].mean():.1f}", tr("system-wide average", lang), "moderate"),
+        (tr("Students at Risk", lang),  f"{filtered['undocumented_est'].sum():,}", tr("est. undocumented", lang), "low"),
     ]
     for col, (label, value, sub, css_class) in zip(cols, metrics):
         with col:
@@ -458,12 +459,11 @@ def render_ranked_table(filtered: pd.DataFrame):
 
 
 # ── Panel 4: Analytics charts ─────────────────────────────────────────────────
-def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
-    st.subheader("📊 System-Wide Analytics")
+def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("📊 System-Wide Analytics", lang))
     col1, col2 = st.columns(2)
 
     with col1:
-        # Bar chart: Gap scores by campus (top 15)
         top = filtered.nlargest(15, "gap_score").sort_values("gap_score")
         fig = px.bar(
             top,
@@ -472,8 +472,8 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
             color_continuous_scale=["#4575b4", "#fee090", "#fc8d59", "#d73027"],
             range_color=[0, 100],
             orientation="h",
-            labels={"gap_score": "Gap Score", "name": ""},
-            title="Top 15 Campuses by Gap Score",
+            labels={"gap_score": tr("Gap Score", lang), "name": ""},
+            title=tr("Top 15 Campuses by Gap Score", lang),
         )
         fig.update_layout(
             showlegend=False, height=450, margin=dict(l=10, r=10, t=40, b=10),
@@ -484,7 +484,6 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        # Scatter: Need vs Threat, size = enrollment, color = gap score
         fig2 = px.scatter(
             filtered,
             x="need_index", y="threat_index",
@@ -495,11 +494,11 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
             hover_name="name",
             hover_data={"gap_score": ":.1f", "borough": True, "total_enrollment": ":,"},
             labels={
-                "need_index": "Need Index",
-                "threat_index": "Threat Index",
-                "gap_score": "Gap Score",
+                "need_index":   tr("Need Index", lang),
+                "threat_index": tr("Threat Index", lang),
+                "gap_score":    tr("Gap Score", lang),
             },
-            title="Need vs. Threat (bubble size = enrollment)",
+            title=tr("Need vs. Threat (bubble size = enrollment)", lang),
         )
         fig2.update_layout(
             height=450, margin=dict(l=10, r=10, t=40, b=10),
@@ -510,7 +509,6 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
     col3, col4 = st.columns(2)
 
     with col3:
-        # Tier distribution donut
         tier_counts = df["priority_tier"].value_counts().reset_index()
         tier_counts.columns = ["Tier", "Count"]
         fig3 = px.pie(
@@ -518,13 +516,12 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
             color="Tier",
             color_discrete_map=TIER_COLORS,
             hole=0.55,
-            title="Priority Tier Distribution (All 25 Campuses)",
+            title=tr("Priority Tier Distribution (All 25 Campuses)", lang),
         )
         fig3.update_layout(height=320, margin=dict(l=10, r=10, t=40, b=10))
         st.plotly_chart(fig3, use_container_width=True)
 
     with col4:
-        # Borough average gap scores
         borough_avg = (
             df.groupby("borough", as_index=False)["gap_score"]
             .mean()
@@ -535,8 +532,8 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
             color="gap_score",
             color_continuous_scale=["#4575b4", "#fee090", "#d73027"],
             range_color=[0, 100],
-            labels={"gap_score": "Avg Gap Score", "borough": "Borough"},
-            title="Average Gap Score by Borough",
+            labels={"gap_score": tr("Avg Gap Score", lang), "borough": tr("Borough", lang)},
+            title=tr("Average Gap Score by Borough", lang),
         )
         fig4.update_layout(
             showlegend=False, height=320, margin=dict(l=10, r=10, t=40, b=10),
@@ -547,13 +544,13 @@ def render_analytics(df: pd.DataFrame, filtered: pd.DataFrame):
 
 
 # ── Panel 5: Campus detail card ───────────────────────────────────────────────
-def render_campus_detail(df: pd.DataFrame):
-    st.subheader("🏫 Campus Detail Card")
-    st.caption("Select a campus to view its full breakdown")
+def render_campus_detail(df: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("🏫 Campus Detail Card", lang))
+    st.caption(tr("Select a campus to view its full breakdown", lang))
 
     sorted_df = df.sort_values("gap_score", ascending=False)
     campus_options = sorted_df["name"].tolist()
-    selected = st.selectbox("Select Campus", campus_options, index=0)
+    selected = st.selectbox(tr("Select Campus", lang), campus_options, index=0)
 
     row = df[df["name"] == selected].iloc[0]
     color = score_to_color(row["gap_score"])
@@ -568,36 +565,37 @@ def render_campus_detail(df: pd.DataFrame):
             "Low Priority": ("#eaf4fb", "#2980b9"),
         }
         bg, fg = tier_badge_colors.get(row["priority_tier"], ("#f0f0f0", "#333"))
+        tier_label = tr(row["priority_tier"], lang)
 
         st.markdown(f"""
         <div class="campus-card">
             <h3 style="margin:0 0 0.5rem 0;color:#1a1a2e">{row['name']}</h3>
             <span style="background:{bg};color:{fg};padding:3px 12px;
                          border-radius:20px;font-size:0.9rem;font-weight:600">
-                {row['priority_tier']}
+                {tier_label}
             </span>
             <div style="font-size:3rem;font-weight:800;color:{color};
                         margin:0.8rem 0 0.3rem">{row['gap_score']:.0f}
                 <span style="font-size:1rem;color:#888;font-weight:400">/ 100</span>
             </div>
-            <div style="color:#888;font-size:0.85rem;margin-bottom:1rem">Gap Score</div>
+            <div style="color:#888;font-size:0.85rem;margin-bottom:1rem">{tr("Gap Score", lang)}</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <div><b>Borough:</b> {row['borough']}</div>
-                <div><b>Zip Code:</b> {row['zip_code']}</div>
-                <div><b>Enrollment:</b> {row['total_enrollment']:,}</div>
-                <div><b>Foreign-born:</b> {row['foreign_born_pct']:.1f}%</div>
-                <div><b>Est. Undocumented:</b> {row['undocumented_est']:,}</div>
-                <div><b>Legal Aid:</b> {row['legal_aid_km'] * KM_TO_MILES:.2f} mi away</div>
+                <div><b>{tr("Borough", lang)}:</b> {row['borough']}</div>
+                <div><b>{tr("Zip Code", lang)}:</b> {row['zip_code']}</div>
+                <div><b>{tr("Enrollment", lang)}:</b> {row['total_enrollment']:,}</div>
+                <div><b>{tr("Foreign-born", lang)}:</b> {row['foreign_born_pct']:.1f}%</div>
+                <div><b>{tr("Est. Undocumented", lang)}:</b> {row['undocumented_est']:,}</div>
+                <div><b>{tr("Legal Aid", lang)}:</b> {row['legal_aid_km'] * KM_TO_MILES:.2f} mi away</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
-        st.markdown("**Index Breakdown**")
+        st.markdown(f"**{tr('Index Breakdown', lang)}**")
         for label, val, bar_color in [
-            ("Need Index", row["need_index"], "#e74c3c"),
-            ("Threat Index", row["threat_index"], "#e67e22"),
-            ("Resource Index", row["resource_index"], "#27ae60"),
+            (tr("Need Index", lang),     row["need_index"],     "#e74c3c"),
+            (tr("Threat Index", lang),   row["threat_index"],   "#e67e22"),
+            (tr("Resource Index", lang), row["resource_index"], "#27ae60"),
         ]:
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
@@ -615,30 +613,30 @@ def render_campus_detail(df: pd.DataFrame):
             st.plotly_chart(fig, use_container_width=True)
 
     with col3:
-        st.markdown("**Current Resources**")
+        st.markdown(f"**{tr('Current Resources', lang)}**")
 
         def check(val, label):
             icon = "✅" if val else "❌"
-            st.markdown(f"{icon} {label}")
+            st.markdown(f"{icon} {tr(label, lang)}")
 
         check(row["has_center"],     "Immigrant Success Center")
         check(row["has_initiative"], "Support Initiative")
         check(True,                  "Designated Liaisons")
 
         tier_desc = {
-            3: "🏆 **Tier 3** — Full Center\nDedicated staff, full programming",
-            2: "📋 **Tier 2** — Initiative\nTrained allies network",
-            1: "👤 **Tier 1** — Liaisons Only\nPart-time support",
+            3: tr("🏆 **Tier 3** — Full Center\nDedicated staff, full programming", lang),
+            2: tr("📋 **Tier 2** — Initiative\nTrained allies network", lang),
+            1: tr("👤 **Tier 1** — Liaisons Only\nPart-time support", lang),
         }
         st.markdown("---")
         st.info(tier_desc.get(int(row["resource_tier"]), ""))
 
-        st.markdown("**Recommended Action**")
+        st.markdown(f"**{tr('Recommended Action', lang)}**")
         actions = {
-            "Critical":     "🚨 Open new Immigrant Success Center immediately",
-            "High Priority":"📈 Upgrade from initiative to full center",
-            "Moderate":     "🔧 Expand liaison training and awareness",
-            "Low Priority": "✔️ Maintain current resources",
+            "Critical":     tr("🚨 Open new Immigrant Success Center immediately", lang),
+            "High Priority":tr("📈 Upgrade from initiative to full center", lang),
+            "Moderate":     tr("🔧 Expand liaison training and awareness", lang),
+            "Low Priority": tr("✔️ Maintain current resources", lang),
         }
         st.success(actions.get(row["priority_tier"], ""))
 
@@ -752,15 +750,15 @@ def simulate_center_placement(df: pd.DataFrame, n_centers: int) -> pd.DataFrame:
     return eligible.loc[top_idx, cols].reset_index(drop=True)
 
 
-def render_policy_simulator(df: pd.DataFrame):
-    st.subheader("🏗️ Resource Allocation Simulator")
-    st.caption(
+def render_policy_simulator(df: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("🏗️ Resource Allocation Simulator", lang))
+    st.caption(tr(
         "Greedy algorithm: selects campuses where opening a new Immigrant Success Center "
-        "produces the largest gap score reduction"
-    )
+        "produces the largest gap score reduction", lang
+    ))
 
     n_centers = st.slider(
-        "New Immigrant Success Centers to open", min_value=1, max_value=5, value=3
+        tr("New Immigrant Success Centers to open", lang), min_value=1, max_value=5, value=3
     )
 
     sim = simulate_center_placement(df, n_centers)
@@ -768,7 +766,7 @@ def render_policy_simulator(df: pd.DataFrame):
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.markdown(f"#### Top {n_centers} Recommended Campuses")
+        st.markdown(f"#### {tr('Top', lang)} {n_centers} {tr('Recommended Campuses', lang)}")
         for _, r in sim.iterrows():
             st.markdown(f"""
             <div style="background:#f8f9fa;border-radius:8px;padding:0.8rem;
@@ -794,12 +792,11 @@ def render_policy_simulator(df: pd.DataFrame):
         new_avg = sim_df["gap_score"].mean()
 
         st.markdown("---")
-        st.metric("System Avg (Before)", f"{baseline_avg:.1f}")
-        st.metric("System Avg (After)", f"{new_avg:.1f}",
-                  delta=f"{new_avg - baseline_avg:.1f}")
+        st.metric(tr("System Avg (Before)", lang), f"{baseline_avg:.1f}")
+        st.metric(tr("System Avg (After)", lang),  f"{new_avg:.1f}", delta=f"{new_avg - baseline_avg:.1f}")
 
     with col2:
-        st.markdown("#### Before vs. After Gap Scores")
+        st.markdown(f"#### {tr('Before vs. After Gap Scores', lang)}")
         fig = go.Figure()
         fig.add_trace(go.Bar(
             name="Before", x=sim["name"], y=sim["gap_score"],
@@ -981,9 +978,9 @@ You do NOT need US citizenship to access these services.
 
 
 # ── Panel 9: Methodology ──────────────────────────────────────────────────────
-def render_methodology():
-    with st.expander("📐 Methodology & Data Sources", expanded=False):
-        st.markdown("""
+def render_methodology(lang: str = 'en'):
+    with st.expander(tr("📐 Methodology & Data Sources", lang), expanded=False):
+        st.markdown(tr("""
 ### How the Gap Score Works
 
 **Gap Score = (Need Index × 0.45) + (Threat Index × 0.35) − (Resource Index × 0.20)**
@@ -1010,47 +1007,28 @@ Higher Gap Score = more underserved relative to the threat students face.
 - Undocumented student estimates are institutional approximations; true counts are not publicly available
 - ICE enforcement data is through mid-October 2025; enforcement patterns may have shifted
 - Resource tier classification is point-in-time; programs evolve
-        """)
+        """, lang))
 
-    with st.expander("🌐 NYC Open Data Integration", expanded=False):
-        st.markdown("""
-### Civic Data Sources & Open Data Alignment
-
-ImmigrantIQ is built on publicly available civic datasets and is designed to plug into
-the **NYC Open Data** platform and OTI's unified data infrastructure.
-
-| Category | Dataset | Source | NYC Open Data ID | Status |
-|----------|---------|--------|-----------------|--------|
-| ICE Enforcement | Arrest records by borough | Deportation Data Project (FOIA) | — | Batch-loaded |
-| Foreign-born % by zip | ACS B05002 (5-year estimates) | U.S. Census Bureau | — | Batch-loaded |
-| SNAP / HRA Centers | Human Resources Administration offices | NYC Open Data | `c4ci-25xt` | Live API ready |
-| Food Pantries | Community food program locations | NYC Open Data | `if26-z6xq` | Live API ready |
-| Housing Court Filings | Eviction filings by zip code | NYC Open Data | `6z8x-wfk4` | Live API ready |
-| Legal Aid Centers | MOIA immigration legal services | NYC.gov/immigrants | — | Batch-loaded |
-| Mental Health Clinics | NYC Health + Hospitals locations | NYC Open Data | `ymhw-9cz9` | Live API ready |
-
-### What "Live API Ready" Means
-
-Datasets marked **Live API ready** can be fetched at runtime from the Socrata Open Data API (SODA):
-
-```python
-import requests
-snap_centers = requests.get(
-    "https://data.cityofnewyork.us/resource/c4ci-25xt.json",
-    params={"$limit": 500}
-).json()
-```
-
-A live integration would:
-- Replace static Community Navigator locations with real-time coordinates
-- Add **eviction pressure** as a fourth Threat Index component
-- Surface **food insecurity** as an additional student need signal
-
-### Alignment with OTI's Mission
-ImmigrantIQ directly supports OTI's goal of unifying city data for public benefit —
-turning five disparate civic datasets into one actionable equity tool for CUNY
-administrators, MOIA, and immigrant advocates.
-        """)
+    with st.expander(tr("🌐 NYC Open Data Integration", lang), expanded=False):
+        st.markdown(tr(
+            "### Civic Data Sources & Open Data Alignment\n\n"
+            "ImmigrantIQ is built on publicly available civic datasets and is designed to plug into "
+            "the **NYC Open Data** platform and OTI's unified data infrastructure.\n\n"
+            "| Category | Dataset | Source | NYC Open Data ID | Status |\n"
+            "|----------|---------|--------|-----------------|--------|\n"
+            "| ICE Enforcement | Arrest records by borough | Deportation Data Project (FOIA) | — | Batch-loaded |\n"
+            "| Foreign-born % by zip | ACS B05002 (5-year estimates) | U.S. Census Bureau | — | Batch-loaded |\n"
+            "| SNAP / HRA Centers | Human Resources Administration offices | NYC Open Data | c4ci-25xt | Live API ready |\n"
+            "| Food Pantries | Community food program locations | NYC Open Data | if26-z6xq | Live API ready |\n"
+            "| Housing Court Filings | Eviction filings by zip code | NYC Open Data | 6z8x-wfk4 | Live API ready |\n"
+            "| Legal Aid Centers | MOIA immigration legal services | NYC.gov/immigrants | — | Batch-loaded |\n"
+            "| Mental Health Clinics | NYC Health + Hospitals locations | NYC Open Data | ymhw-9cz9 | Live API ready |\n\n"
+            "### Alignment with OTI's Mission\n"
+            "ImmigrantIQ directly supports OTI's goal of unifying city data for public benefit — "
+            "turning five disparate civic datasets into one actionable equity tool for CUNY "
+            "administrators, MOIA, and immigrant advocates.",
+            lang
+        ))
 
 
 # ── Language bar ─────────────────────────────────────────────────────────────
@@ -1089,7 +1067,7 @@ def main():
     borough, tier, min_s, max_s, priority_only = render_sidebar(df)
     filtered = filter_data(df, borough, tier, min_s, max_s, priority_only)
 
-    render_summary_metrics(df, filtered)
+    render_summary_metrics(df, filtered, lang)
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         tr("🗺️ Campus Map", lang),
@@ -1108,7 +1086,7 @@ def main():
         render_ranked_table(filtered)
 
     with tab3:
-        render_analytics(df, filtered)
+        render_analytics(df, filtered, lang)
 
     with tab4:
         render_resource_finder(df, lang)
@@ -1117,19 +1095,20 @@ def main():
         render_take_action(df, lang)
 
     with tab6:
-        render_policy_simulator(df)
+        render_policy_simulator(df, lang)
 
     with tab7:
-        render_campus_detail(df)
+        render_campus_detail(df, lang)
 
-    render_methodology()
+    render_methodology(lang)
 
     st.markdown("---")
-    st.caption(
+    st.caption(tr(
         "ImmigrantIQ — Built for the BMCC AI Hackathon | "
         "Data: CUNY IR, Deportation Data Project, NYC MOIA, U.S. Census ACS | "
-        "Model: Need + Threat − Resources Gap Score"
-    )
+        "Model: Need + Threat − Resources Gap Score",
+        lang
+    ))
 
 
 if __name__ == "__main__":
