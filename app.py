@@ -205,12 +205,10 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.5rem 1rem;
     }
-    /* Google translate artifacts — hidden */
-    .goog-te-banner-frame, .skiptranslate > iframe { display: none !important; height: 0 !important; }
-    .goog-te-gadget { display: none !important; }
-    body { top: 0 !important; }
-    /* Push main content below fixed language bar */
-    .block-container { padding-top: 5rem !important; }
+    /* Language selector button strip */
+    div[data-testid="stHorizontalBlock"]:has(button[data-lang-bar]) button {
+        border-radius: 20px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1056,83 +1054,37 @@ administrators, MOIA, and immigrant advocates.
 
 
 # ── Language bar ─────────────────────────────────────────────────────────────
-def render_translate_widget(lang: str = 'en'):
-    st.markdown(f"""
-    <div id="lang-bar">
-        <span class="lb-globe">🌐</span>
-        <button class="lbtn {'active' if lang=='en'    else ''}" onclick="switchLang('en')">
-            <span class="lflag">🇺🇸</span><span class="lname">English</span>
-        </button>
-        <button class="lbtn {'active' if lang=='es'    else ''}" onclick="switchLang('es')">
-            <span class="lflag">🇪🇸</span><span class="lname">Español</span>
-        </button>
-        <button class="lbtn {'active' if lang=='zh-CN' else ''}" onclick="switchLang('zh-CN')">
-            <span class="lflag">🇨🇳</span><span class="lname">中文</span>
-        </button>
-        <button class="lbtn {'active' if lang=='ru'    else ''}" onclick="switchLang('ru')">
-            <span class="lflag">🇷🇺</span><span class="lname">Русский</span>
-        </button>
-        <button class="lbtn {'active' if lang=='bn'    else ''}" onclick="switchLang('bn')">
-            <span class="lflag">🇧🇩</span><span class="lname">বাংলা</span>
-        </button>
-        <button class="lbtn {'active' if lang=='ht'    else ''}" onclick="switchLang('ht')">
-            <span class="lflag">🇭🇹</span><span class="lname">Kreyòl</span>
-        </button>
-    </div>
+_LANGUAGES = [
+    ("🇺🇸 English", "en"),
+    ("🇪🇸 Español",  "es"),
+    ("🇨🇳 中文",     "zh-CN"),
+    ("🇷🇺 Русский",  "ru"),
+    ("🇧🇩 বাংলা",   "bn"),
+    ("🇭🇹 Kreyòl",  "ht"),
+]
 
-    <style>
-        #lang-bar {{
-            position: fixed;
-            top: 60px; left: 0; right: 0;
-            z-index: 999999;
-            background: linear-gradient(90deg, #1a1a2e 0%, #0f3460 100%);
-            padding: 7px 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.4);
-        }}
-        .lb-globe {{ font-size: 1.1rem; color: #a8c0d6; margin-right: 2px; }}
-        .lbtn {{
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 20px;
-            padding: 5px 14px;
-            cursor: pointer;
-            color: #e8f0fb;
-            font-size: 0.85rem;
-            font-weight: 500;
-            white-space: nowrap;
-            transition: background 0.18s, border-color 0.18s;
-        }}
-        .lbtn:hover  {{ background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }}
-        .lbtn.active {{ background: white; color: #1a1a2e; border-color: white; font-weight: 700; }}
-        .lflag {{ font-size: 1.15rem; line-height: 1; }}
-        .lname {{ font-size: 0.83rem; }}
-    </style>
+def render_translate_widget() -> str:
+    """Render language selector buttons; return the active language code."""
+    if "lang" not in st.session_state:
+        st.session_state.lang = "en"
 
-    <script>
-    function switchLang(lang) {{
-        var url = new URL(window.location.href);
-        if (lang === 'en') {{
-            url.searchParams.delete('lang');
-        }} else {{
-            url.searchParams.set('lang', lang);
-        }}
-        window.location.href = url.toString();
-    }}
-    </script>
-    """, unsafe_allow_html=True)
+    st.markdown("🌐 **Language / Idioma**")
+    cols = st.columns(len(_LANGUAGES))
+    for col, (label, code) in zip(cols, _LANGUAGES):
+        with col:
+            btn_type = "primary" if st.session_state.lang == code else "secondary"
+            if st.button(label, key=f"lang_btn_{code}",
+                         use_container_width=True, type=btn_type):
+                st.session_state.lang = code
+                st.rerun()
+
+    st.markdown("---")
+    return st.session_state.lang
 
 
 # ── Main app ──────────────────────────────────────────────────────────────────
 def main():
-    lang = st.query_params.get('lang', 'en')
-    render_translate_widget(lang)
+    lang = render_translate_widget()
     df = load_data()
     borough, tier, min_s, max_s, priority_only = render_sidebar(df)
     filtered = filter_data(df, borough, tier, min_s, max_s, priority_only)
