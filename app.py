@@ -602,25 +602,51 @@ def render_campus_detail(df: pd.DataFrame, lang: str = 'en'):
 
     with col2:
         st.markdown(f"**{tr('Index Breakdown', lang)}**")
-        for label, val, bar_color in [
-            (tr("Need Index", lang),     row["need_index"],     "#e74c3c"),
-            (tr("Threat Index", lang),   row["threat_index"],   "#e67e22"),
-            (tr("Resource Index", lang), row["resource_index"], "#27ae60"),
-        ]:
+
+        def gauge(label, val, color):
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=val,
                 title={"text": label, "font": {"size": 13}},
                 gauge={
                     "axis": {"range": [0, 100]},
-                    "bar": {"color": bar_color},
+                    "bar": {"color": color},
                     "bgcolor": "white",
                     "steps": [{"range": [0, 100], "color": "#f0f0f0"}],
                 },
                 number={"font": {"size": 22}},
             ))
-            fig.update_layout(height=160, margin=dict(l=5, r=5, t=30, b=5))
+            fig.update_layout(height=180, margin=dict(l=10, r=10, t=45, b=20))
             st.plotly_chart(fig, use_container_width=True)
+
+        def factor_row(label, value):
+            st.markdown(
+                f"<div style='font-size:0.75rem;color:#555;margin:-4px 0 3px 4px'>"
+                f"<b>{label}:</b> {value}</div>",
+                unsafe_allow_html=True,
+            )
+
+        undoc_density = row["undocumented_est"] / max(row["total_enrollment"], 1) * 1000
+
+        # Need Index
+        gauge(tr("Need Index", lang), row["need_index"], "#e74c3c")
+        factor_row(tr("Campus foreign-born", lang),      f"{row['foreign_born_pct']:.1f}%")
+        factor_row(tr("Undocumented density", lang),     f"{undoc_density:.1f} {tr('per 1,000 students', lang)}")
+        factor_row(tr("Neighborhood foreign-born", lang),f"{row['neighborhood_foreign_born_pct']:.1f}%")
+
+        st.markdown("<div style='margin:6px 0'></div>", unsafe_allow_html=True)
+
+        # Threat Index
+        gauge(tr("Threat Index", lang), row["threat_index"], "#e67e22")
+        factor_row(tr("ICE enforcement pressure", lang),  f"{row['enforcement_index']:.0f} / 100")
+        factor_row(tr("Neighborhood foreign-born", lang), f"{row['neighborhood_foreign_born_pct']:.1f}% — {tr('elevated targeting risk', lang)}")
+
+        st.markdown("<div style='margin:6px 0'></div>", unsafe_allow_html=True)
+
+        # Resource Index
+        gauge(tr("Resource Index", lang), row["resource_index"], "#27ae60")
+        factor_row(tr("Resource tier", lang),   f"Tier {int(row['resource_tier'])} / 3")
+        factor_row(tr("Legal aid distance", lang), f"{row['legal_aid_km'] * KM_TO_MILES:.2f} mi")
 
     with col3:
         st.markdown(f"**{tr('Current Resources', lang)}**")
