@@ -233,7 +233,7 @@ def score_to_radius(score: float) -> int:
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 def render_sidebar(df: pd.DataFrame):
     st.sidebar.image(
-        "https://www.cuny.edu/wp-content/uploads/sites/4/media-assets/cuny_logo.png",
+        "https://www.cuny.edu/wp-content/uploads/sites/4/page-assets/home-preview/branding-guidelines/logo/Correct_Usage_Logo.png",
         width=160,
     )
     st.sidebar.markdown("## 🎛️ Filters")
