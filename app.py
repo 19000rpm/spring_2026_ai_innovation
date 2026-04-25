@@ -189,6 +189,35 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.5rem 1rem;
     }
+    /* ── Google Translate widget ── */
+    #translate-widget {
+        position: fixed;
+        top: 60px;
+        right: 16px;
+        z-index: 999999;
+        background: white;
+        border-radius: 10px;
+        padding: 6px 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    #translate-widget .tw-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #555;
+        white-space: nowrap;
+    }
+    .goog-te-gadget         { font-family: inherit !important; font-size: 0.82rem !important; color: #1a1a2e !important; }
+    .goog-te-gadget-simple  { background: #f5f7fa !important; border: 1px solid #ddd !important; border-radius: 6px !important; padding: 3px 6px !important; }
+    .goog-te-gadget-simple img { display: none !important; }
+    .goog-te-menu-value, .goog-te-menu-value span { color: #1a1a2e !important; font-size: 0.82rem !important; }
+    .goog-logo-link         { display: none !important; }
+    .goog-te-gadget > span  { display: none !important; }
+    /* Push body down when translation bar appears at top */
+    body { top: 0px !important; }
+    .skiptranslate > iframe { height: 0 !important; border: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1031,8 +1060,35 @@ administrators, MOIA, and immigrant advocates.
         """)
 
 
+# ── Google Translate widget ───────────────────────────────────────────────────
+def render_translate_widget():
+    st.markdown("""
+    <div id="translate-widget">
+        <span class="tw-label">🌐 Translate</span>
+        <div id="google_translate_element"></div>
+    </div>
+    <script type="text/javascript">
+    function googleTranslateElementInit() {
+        // Avoid double-init on Streamlit re-renders
+        if (document.querySelector('#google_translate_element .goog-te-gadget')) return;
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'es,zh-CN,ru,bn,ht,ar,ko,fr',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+            multilanguagePage: true
+        }, 'google_translate_element');
+    }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+    """, unsafe_allow_html=True)
+
+
 # ── Main app ──────────────────────────────────────────────────────────────────
 def main():
+    render_translate_widget()
     df = load_data()
     borough, tier, min_s, max_s, priority_only = render_sidebar(df)
     filtered = filter_data(df, borough, tier, min_s, max_s, priority_only)
