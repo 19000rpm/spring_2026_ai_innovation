@@ -24,6 +24,22 @@ ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 from gap_score import compute_resource_index, compute_gap_score
 
+_GT = None
+try:
+    from deep_translator import GoogleTranslator as _GT  # type: ignore[assignment]
+except ImportError:
+    pass
+
+@st.cache_data(show_spinner=False, ttl=86400)
+def tr(text: str, lang: str) -> str:
+    """Translate text server-side; returns English unchanged on error."""
+    if lang == 'en' or not text.strip() or _GT is None:
+        return text
+    try:
+        return _GT(source='en', target=lang).translate(text[:4999])
+    except Exception:
+        return text
+
 # ── NYC Community Resource Data (NYC Open Data + MOIA) ───────────────────────
 NYC_RESOURCES = {
     "🍎 Food Pantry": [
@@ -630,7 +646,7 @@ def render_campus_detail(df: pd.DataFrame):
 
 
 # ── Panel 6: Resource Finder ──────────────────────────────────────────────────
-def render_resource_finder(df: pd.DataFrame):
+def render_resource_finder(df: pd.DataFrame, lang: str = 'en'):
     st.subheader("🧭 Resource Finder")
     st.caption("Browse food pantries, legal aid, benefits, housing, and mental health resources across NYC — filter by borough and type")
 
@@ -707,7 +723,7 @@ def render_resource_finder(df: pd.DataFrame):
             bg, fg = get_card_style(r["category"])
             dist_html    = (f"<div style='color:{fg};font-weight:700;margin-top:0.4rem'>📍 {r['distance_mi']:.2f} mi away</div>" if "distance_mi" in r else "")
             phone_html   = (f"<div style='font-size:0.78rem;color:#444;margin-top:0.2rem'>📞 {r['phone']}</div>" if r.get("phone") else "")
-            svcs_html    = (f"<div style='font-size:0.75rem;color:#666;margin-top:0.15rem'>{r['services']}</div>" if r.get("services") else "")
+            svcs_html    = (f"<div style='font-size:0.75rem;color:#666;margin-top:0.15rem'>{tr(r['services'], lang)}</div>" if r.get("services") else "")
             website_html = (f"<div style='font-size:0.78rem;margin-top:0.2rem'>🌐 <a href='https://{r['website']}' target='_blank' style='color:{fg}'>{r['website']}</a></div>" if r.get("website") else "")
             with col:
                 st.markdown(f"""
@@ -808,19 +824,21 @@ def render_policy_simulator(df: pd.DataFrame):
 
 
 # ── Panel 8: Take Action ──────────────────────────────────────────────────────
-def render_take_action(df: pd.DataFrame):
-    st.subheader("✊ Take Action")
-    st.caption("ImmigrantIQ is a tool for action — find out what you can do right now")
+def render_take_action(df: pd.DataFrame, lang: str = 'en'):
+    st.subheader(tr("✊ Take Action", lang))
+    st.caption(tr("ImmigrantIQ is a tool for action — find out what you can do right now", lang))
 
     student_tab, ally_tab, admin_tab = st.tabs([
-        "🎓 Immigrant Students", "🤝 Allies & Volunteers", "📊 Administrators & Advocates"
+        tr("🎓 Immigrant Students", lang),
+        tr("🤝 Allies & Volunteers", lang),
+        tr("📊 Administrators & Advocates", lang),
     ])
 
     with student_tab:
-        st.markdown("### Resources Available to You Right Now")
+        st.markdown(f"### {tr('Resources Available to You Right Now', lang)}")
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown("""
+            st.markdown(tr("""
 **⚖️ Free Immigration Legal Aid**
 
 You may qualify for free legal help regardless of status:
@@ -830,9 +848,9 @@ You may qualify for free legal help regardless of status:
 - **Catholic Migration Services**: (718) 236-3000
 
 Use the **Resource Finder** tab to locate the closest office.
-            """)
+            """, lang))
         with c2:
-            st.markdown("""
+            st.markdown(tr("""
 **🍎 Food Access**
 
 Free food programs — no ID or status required:
@@ -841,9 +859,9 @@ Free food programs — no ID or status required:
 - **SNAP benefits** — DACA recipients may qualify depending on program
 
 Call **311** to find your nearest pantry.
-            """)
+            """, lang))
         with c3:
-            st.markdown("""
+            st.markdown(tr("""
 **🧠 Mental Health Support**
 
 Free, confidential, multilingual:
@@ -852,12 +870,12 @@ Free, confidential, multilingual:
 - **Safe Horizon**: 1-800-621-HOPE
 
 You do NOT need US citizenship to access these services.
-            """)
+            """, lang))
 
         st.markdown("---")
 
-        with st.expander("🛡️ Know Your Rights — ICE Encounter Quick Guide"):
-            st.markdown("""
+        with st.expander(tr("🛡️ Know Your Rights — ICE Encounter Quick Guide", lang)):
+            st.markdown(tr("""
 **You have rights regardless of immigration status.**
 
 **If an ICE officer approaches you:**
@@ -873,9 +891,9 @@ You do NOT need US citizenship to access these services.
 - Make the Road NY: **(718) 418-7690**
 
 **CUNY Policy**: CUNY campuses are designated sanctuary spaces. Campus Public Safety will not voluntarily share student information with ICE.
-            """)
+            """, lang))
 
-        st.info("**📚 NY Dream Act** — Undocumented and DACA students may qualify for NYS financial aid. Visit hesc.ny.gov to check eligibility.")
+        st.info(tr("**📚 NY Dream Act** — Undocumented and DACA students may qualify for NYS financial aid. Visit hesc.ny.gov to check eligibility.", lang))
 
     with ally_tab:
         st.markdown("### Ways to Help — No Immigration Status Required")
@@ -1038,38 +1056,32 @@ administrators, MOIA, and immigrant advocates.
 
 
 # ── Language bar ─────────────────────────────────────────────────────────────
-def render_translate_widget():
-    st.markdown("""
-    <!-- Hidden Google Translate initializer -->
-    <div id="google_translate_element"
-         style="position:absolute;top:-9999px;left:-9999px;opacity:0;pointer-events:none">
-    </div>
-
-    <!-- Fixed language bar -->
+def render_translate_widget(lang: str = 'en'):
+    st.markdown(f"""
     <div id="lang-bar">
         <span class="lb-globe">🌐</span>
-        <button class="lbtn active" id="lbtn-en"    onclick="switchLang('en')">
+        <button class="lbtn {'active' if lang=='en'    else ''}" onclick="switchLang('en')">
             <span class="lflag">🇺🇸</span><span class="lname">English</span>
         </button>
-        <button class="lbtn" id="lbtn-es"    onclick="switchLang('es')">
+        <button class="lbtn {'active' if lang=='es'    else ''}" onclick="switchLang('es')">
             <span class="lflag">🇪🇸</span><span class="lname">Español</span>
         </button>
-        <button class="lbtn" id="lbtn-zh-CN" onclick="switchLang('zh-CN')">
+        <button class="lbtn {'active' if lang=='zh-CN' else ''}" onclick="switchLang('zh-CN')">
             <span class="lflag">🇨🇳</span><span class="lname">中文</span>
         </button>
-        <button class="lbtn" id="lbtn-ru"    onclick="switchLang('ru')">
+        <button class="lbtn {'active' if lang=='ru'    else ''}" onclick="switchLang('ru')">
             <span class="lflag">🇷🇺</span><span class="lname">Русский</span>
         </button>
-        <button class="lbtn" id="lbtn-bn"    onclick="switchLang('bn')">
+        <button class="lbtn {'active' if lang=='bn'    else ''}" onclick="switchLang('bn')">
             <span class="lflag">🇧🇩</span><span class="lname">বাংলা</span>
         </button>
-        <button class="lbtn" id="lbtn-ht"    onclick="switchLang('ht')">
+        <button class="lbtn {'active' if lang=='ht'    else ''}" onclick="switchLang('ht')">
             <span class="lflag">🇭🇹</span><span class="lname">Kreyòl</span>
         </button>
     </div>
 
     <style>
-        #lang-bar {
+        #lang-bar {{
             position: fixed;
             top: 60px; left: 0; right: 0;
             z-index: 999999;
@@ -1080,9 +1092,9 @@ def render_translate_widget():
             gap: 8px;
             flex-wrap: wrap;
             box-shadow: 0 3px 12px rgba(0,0,0,0.4);
-        }
-        .lb-globe { font-size: 1.1rem; color: #a8c0d6; margin-right: 2px; }
-        .lbtn {
+        }}
+        .lb-globe {{ font-size: 1.1rem; color: #a8c0d6; margin-right: 2px; }}
+        .lbtn {{
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -1096,65 +1108,31 @@ def render_translate_widget():
             font-weight: 500;
             white-space: nowrap;
             transition: background 0.18s, border-color 0.18s;
-        }
-        .lbtn:hover  { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }
-        .lbtn.active { background: white; color: #1a1a2e; border-color: white; font-weight: 700; }
-        .lflag { font-size: 1.15rem; line-height: 1; }
-        .lname { font-size: 0.83rem; }
+        }}
+        .lbtn:hover  {{ background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.55); }}
+        .lbtn.active {{ background: white; color: #1a1a2e; border-color: white; font-weight: 700; }}
+        .lflag {{ font-size: 1.15rem; line-height: 1; }}
+        .lname {{ font-size: 0.83rem; }}
     </style>
 
     <script>
-    function googleTranslateElementInit() {
-        if (document.querySelector('#google_translate_element .goog-te-gadget')) return;
-        new google.translate.TranslateElement({
-            pageLanguage: 'en',
-            includedLanguages: 'es,zh-CN,ru,bn,ht',
-            autoDisplay: false
-        }, 'google_translate_element');
-    }
-
-    function switchLang(lang) {
-        document.querySelectorAll('.lbtn').forEach(function(b) { b.classList.remove('active'); });
-        var btn = document.getElementById('lbtn-' + lang);
-        if (btn) btn.classList.add('active');
-
-        if (lang === 'en') {
-            document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-            document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + location.hostname;
-            location.reload();
-            return;
-        }
-
-        var sel = document.querySelector('.goog-te-combo');
-        if (sel) {
-            sel.value = lang;
-            sel.dispatchEvent(new Event('change'));
-        } else {
-            // Widget not ready yet — set cookie and reload
-            document.cookie = 'googtrans=/en/' + lang + '; path=/';
-            document.cookie = 'googtrans=/en/' + lang + '; path=/; domain=.' + location.hostname;
-            location.reload();
-        }
-    }
-
-    // Restore active button from cookie on load
-    (function() {
-        var m = document.cookie.match(/googtrans=\/en\/([^;]+)/);
-        if (m) {
-            var lang = decodeURIComponent(m[1]);
-            document.querySelectorAll('.lbtn').forEach(function(b) { b.classList.remove('active'); });
-            var active = document.getElementById('lbtn-' + lang);
-            if (active) active.classList.add('active');
-        }
-    })();
+    function switchLang(lang) {{
+        var url = new URL(window.location.href);
+        if (lang === 'en') {{
+            url.searchParams.delete('lang');
+        }} else {{
+            url.searchParams.set('lang', lang);
+        }}
+        window.location.href = url.toString();
+    }}
     </script>
-    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     """, unsafe_allow_html=True)
 
 
 # ── Main app ──────────────────────────────────────────────────────────────────
 def main():
-    render_translate_widget()
+    lang = st.query_params.get('lang', 'en')
+    render_translate_widget(lang)
     df = load_data()
     borough, tier, min_s, max_s, priority_only = render_sidebar(df)
     filtered = filter_data(df, borough, tier, min_s, max_s, priority_only)
@@ -1162,8 +1140,13 @@ def main():
     render_summary_metrics(df, filtered)
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "🗺️ Campus Map", "📋 Rankings", "📊 Analytics",
-        "🧭 Resource Finder", "✊ Take Action", "🏗️ Policy Simulator", "🏫 Campus Detail",
+        tr("🗺️ Campus Map", lang),
+        tr("📋 Rankings", lang),
+        tr("📊 Analytics", lang),
+        tr("🧭 Resource Finder", lang),
+        tr("✊ Take Action", lang),
+        tr("🏗️ Policy Simulator", lang),
+        tr("🏫 Campus Detail", lang),
     ])
 
     with tab1:
@@ -1176,10 +1159,10 @@ def main():
         render_analytics(df, filtered)
 
     with tab4:
-        render_resource_finder(df)
+        render_resource_finder(df, lang)
 
     with tab5:
-        render_take_action(df)
+        render_take_action(df, lang)
 
     with tab6:
         render_policy_simulator(df)
